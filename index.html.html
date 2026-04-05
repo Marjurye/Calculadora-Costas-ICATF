@@ -1,0 +1,1836 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de Costas ICATF · Tenerife</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,600&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#ffffff;--bg2:#f5f7fa;--bg3:#eef1f6;
+  --navy:#1a2c5b;--navy2:#243670;
+  --blue:#2563eb;--blue-l:#3b82f6;--blue-dim:rgba(37,99,235,.08);--blue-line:rgba(37,99,235,.15);
+  --green:#16a34a;--green-bg:rgba(22,163,74,.08);
+  --grey:#64748b;--grey2:#94a3b8;--grey-line:#e2e8f0;
+  --text:#1e293b;--text2:#334155;
+  --warn:#dc2626;--warn-bg:rgba(220,38,38,.07);
+  --ok:#16a34a;--ok-bg:rgba(22,163,74,.08);
+  --info:#0369a1;--info-bg:rgba(3,105,161,.08);
+  --gold:#b8943f;--gold-dim:rgba(184,148,63,.1);
+}
+body{background:var(--bg2);color:var(--text);font-family:'Montserrat',sans-serif;font-weight:300;min-height:100vh;}
+
+/* ── REGISTRO ── */
+#reg-overlay{position:fixed;inset:0;background:linear-gradient(135deg,#1a2c5b 0%,#2563eb 100%);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px;}
+#reg-box{background:#fff;border-radius:12px;padding:48px;max-width:480px;width:100%;box-shadow:0 24px 64px rgba(0,0,0,.2);}
+.reg-logo{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--navy);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;}
+.reg-logo span{color:var(--blue);}
+.reg-title{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:400;color:var(--navy);margin:24px 0 8px;}
+.reg-sub{font-size:12px;color:var(--grey);line-height:1.6;margin-bottom:28px;}
+.reg-field{margin-bottom:16px;}
+.reg-field label{display:block;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--grey);margin-bottom:6px;}
+.reg-field input{width:100%;padding:12px 14px;border:1.5px solid var(--grey-line);border-radius:8px;font-family:'Montserrat',sans-serif;font-size:13px;color:var(--text);outline:none;transition:border-color .2s;}
+.reg-field input:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-dim);}
+.reg-btn{width:100%;background:var(--blue);color:#fff;border:none;padding:14px;border-radius:8px;font-family:'Montserrat',sans-serif;font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;margin-top:8px;transition:background .2s;}
+.reg-btn:hover{background:var(--navy);}
+.reg-nota{font-size:10px;color:var(--grey2);text-align:center;margin-top:12px;line-height:1.5;}
+.reg-badge{display:inline-flex;align-items:center;gap:6px;background:var(--blue-dim);color:var(--blue);font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;padding:4px 10px;border-radius:20px;margin-bottom:20px;}
+
+/* ── HEADER ── */
+header{border-bottom:1px solid var(--grey-line);padding:16px 48px;display:flex;align-items:center;justify-content:space-between;background:var(--bg);box-shadow:0 1px 3px rgba(0,0,0,.06);position:sticky;top:0;z-index:100;}
+.logo{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;letter-spacing:.12em;color:var(--navy);text-transform:uppercase;}
+.logo span{color:var(--blue);}
+.logo-sub{font-size:8px;letter-spacing:.2em;color:var(--grey);text-transform:uppercase;margin-top:2px;}
+.hdr-right{display:flex;align-items:center;gap:16px;}
+.hdr-user{text-align:right;}
+.hdr-user .name{font-size:11px;font-weight:600;color:var(--navy);}
+.hdr-user .despacho{font-size:9px;color:var(--grey);letter-spacing:.08em;}
+.hdr-badge{font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:var(--grey);background:var(--bg2);padding:4px 10px;border-radius:20px;border:1px solid var(--grey-line);}
+
+/* ── AI UPLOAD BANNER ── */
+.ai-result{display:none;}
+
+/* ── PAYWALL ── */
+#paywall-overlay{position:fixed;inset:0;background:rgba(15,23,42,.75);backdrop-filter:blur(4px);z-index:400;display:none;align-items:center;justify-content:center;padding:20px;}
+#paywall-overlay.visible{display:flex;}
+#paywall-modal{background:#fff;border-radius:16px;max-width:520px;width:100%;box-shadow:0 32px 80px rgba(0,0,0,.25);overflow:hidden;animation:up .25s ease;}
+.pw-header{background:linear-gradient(135deg,#1a2c5b,#2563eb);padding:32px 32px 28px;text-align:center;}
+.pw-header h2{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:400;color:#fff;margin-bottom:6px;}
+.pw-header p{font-size:11px;color:rgba(255,255,255,.7);letter-spacing:.08em;}
+.pw-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.15);color:#fff;font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;padding:5px 12px;border-radius:20px;margin-bottom:16px;}
+.pw-body{padding:28px 32px;}
+.pw-precio{text-align:center;margin-bottom:24px;}
+.pw-precio .importe{font-family:'Montserrat',sans-serif;font-size:42px;font-weight:800;color:var(--navy);line-height:1;}
+.pw-precio .periodo{font-size:12px;color:var(--grey);margin-top:4px;}
+.pw-features{list-style:none;margin-bottom:24px;}
+.pw-features li{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--grey-line);font-size:12px;color:var(--text2);line-height:1.5;}
+.pw-features li:last-child{border-bottom:none;}
+.pw-features li .ic{color:var(--green);font-size:14px;flex-shrink:0;margin-top:1px;}
+.pw-features li .ic-lock{color:var(--grey2);}
+.pw-cta{display:block;width:100%;background:var(--blue);color:#fff;border:none;padding:16px;border-radius:10px;font-family:'Montserrat',sans-serif;font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;transition:background .2s;text-align:center;text-decoration:none;margin-bottom:12px;}
+.pw-cta:hover{background:var(--navy);}
+.pw-gratis-btn{display:block;width:100%;background:transparent;color:var(--grey);border:none;padding:10px;font-family:'Montserrat',sans-serif;font-size:10px;cursor:pointer;text-align:center;}
+.pw-gratis-btn:hover{color:var(--navy);}
+.free-badge-bar{background:var(--green-bg);border:1.5px solid rgba(22,163,74,.2);border-radius:8px;padding:10px 16px;margin-bottom:12px;font-size:11px;color:var(--green);display:flex;align-items:center;gap:8px;}
+.premium-badge-bar{background:var(--blue-dim);border:1.5px solid var(--blue-line);border-radius:8px;padding:10px 16px;font-size:11px;color:var(--blue);display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;}
+.premium-badge-bar:hover{background:rgba(37,99,235,.14);}
+.proc-premium-label{display:inline-block;background:var(--blue-dim);color:var(--blue);font-size:8px;font-weight:700;letter-spacing:.1em;padding:1px 6px;border-radius:3px;margin-left:4px;text-transform:uppercase;vertical-align:middle;}
+
+/* ── WRAP ── */
+.wrap{max-width:1020px;margin:0 auto;padding:36px 32px 96px;}
+
+/* ── PAGE TITLE ── */
+.page-title{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:400;color:var(--navy);line-height:1.15;}
+.page-title em{font-style:italic;color:var(--blue);}
+.page-sub{font-size:9px;letter-spacing:.2em;color:var(--grey);text-transform:uppercase;margin-top:6px;padding-bottom:24px;border-bottom:1px solid var(--grey-line);margin-bottom:32px;}
+
+/* ── SELECTOR DE PROCEDIMIENTO ── */
+.proc-card{background:var(--bg);border-radius:10px;padding:28px;box-shadow:0 1px 3px rgba(0,0,0,.06);margin-bottom:24px;border:1.5px solid var(--grey-line);}
+.proc-card h3{font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--navy);margin-bottom:4px;}
+.proc-card p{font-size:10px;color:var(--grey);letter-spacing:.06em;line-height:1.6;margin-bottom:18px;}
+.proc-select{width:100%;padding:12px 14px;border:1.5px solid var(--grey-line);border-radius:8px;font-family:'Montserrat',sans-serif;font-size:13px;color:var(--text);background:var(--bg);outline:none;transition:border-color .2s;-webkit-appearance:none;}
+.proc-select:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-dim);}
+.proc-select optgroup{font-weight:700;font-size:10px;color:var(--grey);letter-spacing:.1em;text-transform:uppercase;}
+.proc-select option{font-weight:400;font-size:13px;color:var(--text);padding:8px;}
+.proc-info{display:none;margin-top:12px;padding:10px 14px;background:var(--blue-dim);border-radius:6px;border-left:3px solid var(--blue);}
+.proc-info p{font-size:10px;color:var(--text2);line-height:1.6;}
+.proc-info strong{color:var(--blue);font-weight:600;}
+
+/* ── FORMULARIO ── */
+.form-card{background:var(--bg);border-radius:10px;padding:28px;box-shadow:0 1px 3px rgba(0,0,0,.06);border:1.5px solid var(--grey-line);}
+.sdiv{display:flex;align-items:center;gap:12px;margin:28px 0 16px;}
+.sdiv:first-child{margin-top:0;}
+.sdiv span{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--blue);white-space:nowrap;font-weight:700;}
+.sdiv::after{content:'';flex:1;height:1px;background:var(--grey-line);}
+.fg{display:grid;gap:16px;margin-bottom:16px;}
+.fg2{grid-template-columns:1fr 1fr;}
+.fg3{grid-template-columns:1fr 1fr 1fr;}
+.fg1{grid-template-columns:1fr;}
+.field{display:flex;flex-direction:column;gap:6px;}
+label.lbl{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--grey);font-weight:600;}
+input[type=number],input[type=text],input[type=date],select.sel,textarea.sel{background:var(--bg);border:1.5px solid var(--grey-line);color:var(--text);font-family:'Montserrat',sans-serif;font-size:13px;font-weight:400;padding:10px 14px;border-radius:8px;outline:none;transition:border-color .2s,box-shadow .2s;width:100%;-webkit-appearance:none;}
+input:focus,select.sel:focus,textarea.sel:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-dim);}
+select.sel option{background:var(--bg);color:var(--text);}
+textarea.sel{resize:vertical;min-height:80px;}
+.pills{display:flex;border-radius:8px;overflow:hidden;border:1.5px solid var(--grey-line);}
+.pills input[type=radio]{display:none;}
+.pills label{flex:1;text-align:center;cursor:pointer;font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;padding:10px 6px;color:var(--grey);background:var(--bg);border-right:1px solid var(--grey-line);transition:all .18s;}
+.pills label:last-of-type{border-right:none;}
+.pills input[type=radio]:checked+label{background:var(--blue);color:#fff;border-color:var(--blue);}
+.igic-row{display:flex;align-items:center;justify-content:space-between;gap:16px;background:var(--blue-dim);border:1.5px solid var(--blue-line);border-radius:8px;padding:14px 18px;margin-bottom:8px;}
+.igic-row-left{display:flex;flex-direction:column;gap:3px;}
+.igic-row-title{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--blue);font-weight:600;}
+.igic-row-sub{font-size:9px;color:var(--grey);letter-spacing:.06em;line-height:1.6;}
+
+/* ── FASES STRIP ── */
+.fase-strip{display:grid;gap:2px;background:var(--grey-line);border:1.5px solid var(--grey-line);border-radius:8px;overflow:hidden;margin-bottom:16px;}
+.fb{background:var(--bg2);padding:14px 12px;text-align:center;transition:background .2s;}
+.fb.on{background:var(--blue-dim);}
+.fb-pct{font-family:'Montserrat',sans-serif;font-size:20px;font-weight:700;color:var(--grey2);}
+.fb.on .fb-pct{color:var(--blue);}
+.fb-lbl{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--grey);margin-top:3px;font-weight:600;}
+.fb-sub{font-size:9px;color:var(--grey2);margin-top:2px;}
+
+/* ── ART 241 ── */
+.art241-box{border:1.5px solid var(--grey-line);border-radius:8px;overflow:hidden;margin-top:8px;}
+.art241-header{background:var(--bg2);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;}
+.art241-hdr-left{display:flex;align-items:center;gap:12px;}
+.art241-title{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--navy);font-weight:600;}
+.art241-hsub{font-size:9px;color:var(--grey);}
+.art241-tog{font-size:20px;color:var(--blue);transition:transform .2s;line-height:1;}
+.art241-tog.open{transform:rotate(45deg);}
+.art241-body{display:none;padding:20px;}
+.art241-body.open{display:block;}
+.partida-row{display:grid;grid-template-columns:1fr 150px 32px;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--grey-line);}
+.partida-row:last-child{border-bottom:none;}
+.p-lbl{font-size:11px;color:var(--text2);line-height:1.4;}
+.p-lbl small{display:block;font-size:9px;color:var(--grey);margin-top:2px;letter-spacing:.06em;}
+.p-clear{background:none;border:none;color:var(--grey2);cursor:pointer;font-size:16px;padding:4px;transition:color .15s;}
+.p-clear:hover{color:var(--warn);}
+.art241-total-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0 0;margin-top:8px;border-top:1px solid var(--grey-line);}
+.art241-total-lbl{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--grey);font-weight:600;}
+.art241-total-val{font-family:'Montserrat',sans-serif;font-size:16px;font-weight:600;color:var(--navy);}
+.tasa-warn{display:none;background:var(--warn-bg);border-left:2px solid var(--warn);padding:10px 14px;font-size:10px;color:var(--warn);line-height:1.6;margin-top:6px;border-radius:0 4px 4px 0;}
+.tercio-box{display:none;margin-top:16px;padding:14px 16px;border-radius:8px;border-left:3px solid;font-size:11px;line-height:1.7;}
+.tercio-box.warn{background:var(--warn-bg);border-color:var(--warn);color:var(--warn);}
+.tercio-box.ok{background:var(--ok-bg);border-color:var(--ok);color:var(--ok);}
+.note{border-left:3px solid var(--blue);background:var(--blue-dim);padding:12px 16px;font-size:11px;line-height:1.75;color:var(--text2);margin-top:12px;border-radius:0 6px 6px 0;}
+.note strong{color:var(--navy);font-weight:600;}
+.note-warn{border-left-color:var(--warn);background:var(--warn-bg);color:var(--warn);}
+.tag{display:inline-block;background:var(--blue-dim);color:var(--blue);font-size:9px;letter-spacing:.1em;padding:2px 8px;border-radius:4px;margin-right:4px;font-weight:600;}
+
+/* ── BOTÓN CALCULAR ── */
+.btn-calc{background:var(--blue);color:#fff;border:none;font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;padding:15px 48px;cursor:pointer;border-radius:8px;transition:background .18s,transform .1s;margin-top:24px;box-shadow:0 2px 8px rgba(37,99,235,.25);}
+.btn-calc:hover{background:var(--navy);transform:translateY(-1px);}
+
+
+/* ── RESULTADO ── */
+#result{display:none;margin-top:32px;border:1.5px solid var(--grey-line);border-radius:10px;overflow:hidden;animation:up .3s ease;box-shadow:0 4px 16px rgba(0,0,0,.08);}
+@keyframes up{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+.rh{background:var(--blue-dim);padding:18px 28px;border-bottom:1.5px solid var(--blue-line);display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap;}
+.rh-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:500;color:var(--navy);}
+.rh-proc{font-size:9px;letter-spacing:.14em;color:var(--grey);text-transform:uppercase;}
+.rb{padding:24px 28px 8px;background:var(--bg);}
+.r-sec{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--grey);padding:14px 0 6px;border-top:1px solid var(--grey-line);margin-top:8px;font-weight:600;}
+.r-sec:first-child{border-top:none;margin-top:0;padding-top:0;}
+.rrow{display:flex;justify-content:space-between;align-items:baseline;padding:10px 0;border-bottom:1px solid var(--grey-line);gap:16px;}
+.rrow:last-child{border-bottom:none;}
+.rrow-lbl{font-size:11px;color:var(--text2);line-height:1.4;}
+.rrow-lbl small{display:block;font-size:9px;color:var(--grey);margin-top:2px;}
+.rrow-val{font-family:'Montserrat',sans-serif;font-size:16px;font-weight:600;color:var(--text);white-space:nowrap;}
+.rrow.accent .rrow-lbl{color:var(--blue);font-weight:600;}
+.rrow.accent .rrow-val{color:var(--blue);font-size:20px;font-weight:700;}
+.rrow.muted{opacity:.4;}
+.rtotal{background:var(--blue);padding:18px 28px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;}
+.rtotal-lbl{font-size:9px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.8);}
+.rtotal-lbl small{display:block;font-size:8px;font-weight:400;letter-spacing:.12em;opacity:.65;margin-top:2px;}
+.rtotal-val{font-family:'Montserrat',sans-serif;font-size:30px;font-weight:700;color:#fff;letter-spacing:-.02em;}
+
+/* ── ACCIONES RESULTADO ── */
+.result-actions{background:var(--bg2);padding:16px 28px;display:flex;gap:12px;flex-wrap:wrap;border-top:1px solid var(--grey-line);}
+.btn-action{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:8px;font-family:'Montserrat',sans-serif;font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;border:none;transition:all .18s;}
+.btn-pdf{background:var(--navy);color:#fff;}
+.btn-pdf:hover{background:#111;}
+.btn-tasacion{background:var(--green);color:#fff;}
+.btn-tasacion:hover{background:#0f7a36;}
+.btn-reset{background:transparent;color:var(--grey);border:1.5px solid var(--grey-line);}
+.btn-reset:hover{border-color:var(--navy);color:var(--navy);}
+
+/* ── MODAL TASACIÓN ── */
+#tasacion-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:none;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto;}
+#tasacion-overlay.visible{display:flex;}
+#tasacion-modal{background:var(--bg);border-radius:12px;width:100%;max-width:800px;box-shadow:0 24px 64px rgba(0,0,0,.2);overflow:hidden;}
+.tasacion-header{background:var(--navy);padding:20px 28px;display:flex;align-items:center;justify-content:space-between;}
+.tasacion-header h3{font-family:'Cormorant Garamond',serif;font-size:20px;color:#fff;font-weight:500;}
+.tasacion-header-right{display:flex;gap:10px;}
+.btn-print{background:rgba(255,255,255,.15);color:#fff;border:1.5px solid rgba(255,255,255,.3);padding:8px 16px;border-radius:6px;font-family:'Montserrat',sans-serif;font-size:9px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;}
+.btn-print:hover{background:rgba(255,255,255,.25);}
+.btn-close-modal{background:none;border:none;color:rgba(255,255,255,.7);font-size:22px;cursor:pointer;padding:4px;line-height:1;}
+.tasacion-body{padding:32px;}
+.tas-field{margin-bottom:16px;}
+.tas-field label{display:block;font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--grey);margin-bottom:6px;}
+.tas-field input,.tas-field select.sel,.tas-field textarea.sel{border-color:var(--grey-line);}
+#tasacion-preview{background:var(--bg2);border:1px solid var(--grey-line);border-radius:8px;padding:32px;font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--text);line-height:1.9;margin-top:24px;white-space:pre-wrap;word-wrap:break-word;}
+
+/* ── PRINT STYLES ── */
+@media print{
+  #reg-overlay,header,.ai-banner,.result-actions,#tasacion-overlay,#tasacion-modal .tasacion-header{display:none!important;}
+  body{background:#fff;}
+  .wrap{padding:0;max-width:100%;}
+  #result{box-shadow:none;border:1px solid #ccc;}
+  .print-only{display:block!important;}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+}
+.print-only{display:none;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  header{padding:14px 20px;}
+  .wrap{padding:24px 16px 72px;}
+  .fg2,.fg3{grid-template-columns:1fr;}
+  .igic-row{flex-direction:column;align-items:flex-start;}
+  .form-card,.proc-card{padding:20px 16px;}
+}
+@media(max-width:600px){
+  .partida-row{grid-template-columns:1fr 100px 28px;}
+  .hdr-user{display:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- ── REGISTRO ── -->
+<div id="reg-overlay">
+  <div id="reg-box">
+    <div class="reg-logo">Calculadora de <span>Costas ICATF</span></div>
+    <div class="reg-badge">⚖️ Herramienta profesional · ICATF · Tenerife</div>
+    <h2 class="reg-title">Tasación de<br/><em>Costas Judiciales</em></h2>
+    <p class="reg-sub">Criterios Orientadores del Ilustre Colegio de Abogados de Santa Cruz de Tenerife · Actualización colegial +15% · Arts. 241, 394 y 398 LEC</p>
+    <div class="reg-field">
+      <label>Nombre completo</label>
+      <input type="text" id="reg-nombre" placeholder="Letrado/a que utiliza la herramienta" />
+    </div>
+    <div class="reg-field">
+      <label>Despacho</label>
+      <input type="text" id="reg-despacho" placeholder="Nombre del despacho" />
+    </div>
+    <div class="reg-field">
+      <label>Número de colegiación</label>
+      <input type="text" id="reg-colegiada" placeholder="Nº de colegiado/a ICATF" />
+    </div>
+    <div class="reg-field">
+      <label>Correo electrónico</label>
+      <input type="text" id="reg-email" placeholder="tu@despacho.com" />
+    </div>
+    <button class="reg-btn" onclick="registrar()">Acceder a la calculadora →</button>
+    <p class="reg-nota">Tus datos se guardan localmente en este dispositivo. No se comparten con terceros.</p>
+  </div>
+</div>
+
+<!-- ── MAIN APP ── -->
+<div id="main-app" style="display:none">
+
+<header>
+  <div>
+    <div class="logo">Costas <span>ICATF</span></div>
+    <div class="logo-sub">Calculadora de Costas Judiciales · Tenerife</div>
+  </div>
+  <div class="hdr-right">
+    <div class="hdr-user">
+      <div class="name" id="hdr-name">—</div>
+      <div class="despacho" id="hdr-despacho">—</div>
+    </div>
+    <div class="hdr-badge">Criterios ICATF · +15%</div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="page-title">Tasación de <em>Costas Judiciales</em></div>
+  <div class="page-sub">Criterios Orientadores ICATF · Arts. 241, 394 y 398 LEC · Actualización colegial +15% · IGIC 7% opcional</div>
+
+  <!-- ── SELECTOR PROCEDIMIENTO ── -->
+  <div class="proc-card">
+    <h3>Selecciona el tipo de procedimiento</h3>
+    <p>La calculadora aplicará automáticamente el criterio ICATF correspondiente (C.35, C.36 u otros) con los porcentajes y escalas correctas.</p>
+    <div class="free-badge-bar">
+      ✅ <strong>Gratis:</strong> Juicio Verbal y Juicio Ordinario — resultado en pantalla incluido sin coste.
+    </div>
+    <select class="proc-select" id="proc-sel" onchange="onProcChange()">
+      <option value="">— Selecciona el tipo de procedimiento —</option>
+      <optgroup label="▸ JUICIOS DECLARATIVOS — GRATIS">
+        <option value="verbal">Juicio Verbal — tramitación completa (C.35)</option>
+        <option value="ordinario">Juicio Ordinario — tramitación completa (C.35)</option>
+      </optgroup>
+      <optgroup label="▸ 🔒 EJECUCIONES — Resoluciones judiciales y arbitrales">
+        <option value="ej_jud_sin">Ejecución de sentencia/auto · SIN oposición (C.40-A · 50% C.36)</option>
+        <option value="ej_jud_con">Ejecución de sentencia/auto · CON oposición (C.40-B · C.35)</option>
+        <option value="ej_prov_sin">Ejecución provisional · SIN oposición (C.39 · 50% C.36)</option>
+        <option value="ej_prov_con">Ejecución provisional · CON oposición (C.39 · C.36)</option>
+        <option value="ej_apremio">Procedimiento de apremio (C.44 · 50% C.36)</option>
+        <option value="ej_no_din">Ejecución no dineraria — hacer/no hacer/entrega (C.45 · 30% C.35)</option>
+        <option value="ej_dan_con">Liquidación de daños · CON conformidad del deudor (C.46 · 20% C.35)</option>
+        <option value="ej_dan_sin">Liquidación de daños · SIN conformidad (C.46 · 50% C.35)</option>
+        <option value="ej_tit_sin">Ejecución título no judicial · SIN oposición (C.41-A · C.36)</option>
+        <option value="ej_tit_con">Ejecución título no judicial · CON oposición (C.41-B · C.35)</option>
+      </optgroup>
+      <optgroup label="▸ 🔒 CAMBIARIO Y MONITORIO">
+        <option value="cambiario_sin">Juicio cambiario · SIN oposición (C.36)</option>
+        <option value="cambiario_con">Juicio cambiario · CON oposición (C.37 · C.35)</option>
+        <option value="monitorio_pet">Proceso monitorio · Petición inicial (C.38 · fijo)</option>
+        <option value="monitorio_op">Proceso monitorio · Escrito de oposición (C.38 · fijo)</option>
+        <option value="monitorio_dec">Proceso monitorio · Continuación como juicio declarativo (C.35)</option>
+      </optgroup>
+      <optgroup label="▸ 🔒 HIPOTECARIO Y PRENDA">
+        <option value="hipot_sin">Procedimiento hipotecario/prenda · SIN oposición (C.43 · C.36 +30%)</option>
+        <option value="hipot_con">Procedimiento hipotecario/prenda · CON oposición (C.43 · C.35)</option>
+      </optgroup>
+      <optgroup label="▸ 🔒 RECURSOS CIVILES">
+        <option value="rep">Recurso de reposición contra autos y providencias (C.70 · fijo)</option>
+        <option value="ape_mismo">Recurso de apelación — mismo letrado que 1ª instancia (C.71 · 50% C.35)</option>
+        <option value="ape_distinto">Recurso de apelación — letrado distinto a 1ª instancia (C.71 · 60% C.35)</option>
+        <option value="queja">Recurso de queja (C.73 · fijo)</option>
+        <option value="inf_proc">Recurso extraordinario por infracción procesal (C.74 · 75% C.35)</option>
+        <option value="casacion_civ">Recurso de casación civil (C.75 · 80% C.35)</option>
+      </optgroup>
+      <optgroup label="▸ 🔒 FAMILIA Y MATRIMONIAL">
+        <option value="med_prev">Medidas provisionales previas (C.86 · fijo)</option>
+        <option value="med_simul">Medidas provisionales simultáneas (C.86 · fijo)</option>
+        <option value="div_ma_sep">Separación de mutuo acuerdo — tramitación (C.87 · fijo)</option>
+        <option value="div_ma_div">Divorcio de mutuo acuerdo — tramitación (C.87 · fijo)</option>
+        <option value="convenio">Negociación y redacción convenio regulador (C.87 · fijo)</option>
+        <option value="sep_cont">Separación/divorcio contencioso (C.88 · fijo)</option>
+        <option value="mod_med_cont">Modificación medidas · contencioso (C.89 · fijo)</option>
+        <option value="mod_med_ma">Modificación medidas · mutuo acuerdo (C.89 · fijo)</option>
+        <option value="nulidad_mat">Nulidad matrimonial civil (C.90 · 150% C.88)</option>
+      </optgroup>
+      <optgroup label="▸ 🔒 DESAHUCIO Y ARRENDAMIENTOS">
+        <option value="desahucio">Desahucio por falta de pago / expiración del término (C.51)</option>
+        <option value="precario_sin">Juicio verbal por precario · SIN oposición (C.52 · C.36)</option>
+        <option value="precario_con">Juicio verbal por precario · CON oposición (C.52 · C.35)</option>
+      </optgroup>
+      <optgroup label="▸ 🔒 CONCURSAL">
+        <option value="concurso">Concurso de acreedores — letrado concursado (C.63)</option>
+        <option value="incidente_con">Incidente concursal con cuantía (C.66 · C.35 −25%)</option>
+      </optgroup>
+      <optgroup label="▸ 🔒 MEDIDAS CAUTELARES">
+        <option value="cauc_sin">Medidas cautelares · SIN oposición (C.49 · C.36 −25%)</option>
+        <option value="cauc_con">Medidas cautelares · CON oposición (C.49 · C.35 −25%)</option>
+      </optgroup>
+      <optgroup label="▸ 🔒 SUCESIONES Y DIVISIÓN">
+        <option value="division">División judicial de la herencia (C.61 · 50% C.35)</option>
+        <option value="ph_det">Propiedad horizontal — cuantía determinada (C.62 · C.35)</option>
+        <option value="ph_indet">Propiedad horizontal — cuantía indeterminada (C.62 · fijo)</option>
+      </optgroup>
+      <optgroup label="▸ 🔒 CONTENCIOSO-ADMINISTRATIVO">
+        <option value="ca_ord">Recurso C-A · procedimiento ordinario (C.148 · C.35)</option>
+        <option value="ca_abrev">Recurso C-A · procedimiento abreviado (C.149 · C.35 −20%)</option>
+        <option value="ca_ape">Recurso de apelación C-A (C.152 · 70% instancia)</option>
+        <option value="ca_cas">Recurso de casación C-A (C.153 · 80% C.35)</option>
+      </optgroup>
+      <optgroup label="▸ 🔒 LABORAL">
+        <option value="lab_cant">Reclamación de cantidad (C.167 · C.35)</option>
+        <option value="lab_despido">Despido — sobre indemnización + salarios tramitación (C.167 · C.35)</option>
+        <option value="suplica_mismo">Recurso de suplicación — mismo letrado (C.169 · 50% instancia)</option>
+        <option value="suplica_otro">Recurso de suplicación — distinto letrado (C.169 · 75% sobre C.35)</option>
+      </optgroup>
+      <optgroup label="▸ 🔒 PENAL">
+        <option value="det">Asistencia a detenido/preso (C.98 · fijo)</option>
+        <option value="abrev_conf">Proc. abreviado Juzgado Penal · conformidad (C.106 · fijo)</option>
+        <option value="abrev_disc_np">Proc. abreviado Juzgado Penal · disconformidad sin prisión (C.106 · fijo)</option>
+        <option value="abrev_disc_p">Proc. abreviado Juzgado Penal · disconformidad con prisión (C.106 · fijo)</option>
+        <option value="sum_conf">Sumario/Abreviado Audiencia · conformidad (C.107 · fijo)</option>
+        <option value="sum_disc">Sumario/Abreviado Audiencia · disconformidad (C.107 · fijo)</option>
+        <option value="ape_pen_np">Apelación penal · pena no privativa de libertad (C.113 · fijo)</option>
+        <option value="ape_pen_p">Apelación penal · pena privativa de libertad (C.113 · fijo)</option>
+      </optgroup>
+      <optgroup label="▸ 🔒 OTROS">
+        <option value="conc_dem">Acto de conciliación · demanda (C.33 · fijo)</option>
+        <option value="conc_sin">Acto de conciliación · asistencia sin avenencia (C.34 · fijo)</option>
+        <option value="conc_ave">Acto de conciliación · con avenencia (75% pleito evitado)</option>
+      </optgroup>
+    </select>
+    <div class="premium-badge-bar" onclick="mostrarPaywall('selector')" id="premium-unlock-bar">
+      🔒 <strong>58 procedimientos más</strong> — Ejecuciones, Familia, Laboral, Penal, Concursal y más · Desbloquea con suscripción mensual
+      <span style="margin-left:auto;background:var(--blue);color:#fff;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:4px 10px;border-radius:6px;white-space:nowrap">Ver planes →</span>
+    </div>
+    <div class="proc-info" id="proc-info"><p id="proc-info-text"></p></div>
+  </div>
+
+  <!-- ── FORMULARIO DINÁMICO ── -->
+  <div class="form-card" id="form-main" style="display:none">
+
+    <!-- DATOS DEL PROCEDIMIENTO (para tasación) -->
+    <div class="sdiv"><span>Datos del procedimiento</span></div>
+
+    <!-- AVISO PRIVACIDAD DATOS -->
+    <div class="note" style="margin-bottom:16px;font-size:10px;border-left-color:var(--green)">
+      <strong>🔒 Privacidad de datos:</strong> Los documentos que subas y los datos que introduzcas se procesan únicamente para calcular las costas y generar el escrito. No se almacenan en ningún servidor ni se comparten con terceros. Todo el procesamiento es local o mediante llamada puntual a la IA exclusivamente para extraer datos del documento.
+    </div>
+      </div>
+    </div>
+
+    <div class="fg fg3">
+      <div class="field">
+        <label class="lbl">Tribunal / Órgano judicial</label>
+        <input type="text" id="f-juzgado" placeholder="Ej: Plaza nº 3 del Tribunal de Instancia, Sección Civil — Santa Cruz de Tenerife" />
+        <small style="font-size:9px;color:var(--grey);margin-top:4px;display:block">Nueva denominación (LO 1/2025): Plaza Nº X del Tribunal de Instancia / Instrucción — Sección Civil, Penal o Familia</small>
+      </div>
+      <div class="field">
+        <label class="lbl">Número de autos</label>
+        <input type="text" id="f-autos" placeholder="Ej: 245/2024" />
+      </div>
+      <div class="field">
+        <label class="lbl">Fecha de resolución</label>
+        <input type="date" id="f-fecha" />
+      </div>
+    </div>
+    <div class="fg fg2">
+      <div class="field">
+        <label class="lbl">Parte favorecida en costas <span style="font-weight:300;font-size:8px;color:var(--grey2)">(opcional)</span></label>
+        <input type="text" id="f-cliente" placeholder="Nombre — puedes dejarlo en blanco" />
+      </div>
+      <div class="field">
+        <label class="lbl">Parte condenada en costas <span style="font-weight:300;font-size:8px;color:var(--grey2)">(opcional)</span></label>
+        <input type="text" id="f-contraria" placeholder="Nombre — puedes dejarlo en blanco" />
+      </div>
+    </div>
+
+    <!-- CUANTÍA (oculto para fijos) -->
+    <div id="bloque-cuantia">
+      <div class="sdiv"><span>Cuantía y cálculo</span></div>
+      <!-- Toggle cuantía determinada / indeterminada -->
+      <div class="igic-row" style="margin-bottom:12px">
+        <div class="igic-row-left">
+          <div class="igic-row-title">Tipo de cuantía</div>
+          <div class="igic-row-sub">Algunos procedimientos tienen cuantía indeterminada — el ICATF fija un importe orientativo</div>
+        </div>
+        <div class="pills" style="min-width:220px">
+          <input type="radio" name="f-tipo-cuantia" id="tc-det" value="det" checked onchange="onTipoCuantia()"><label for="tc-det">Determinada</label>
+          <input type="radio" name="f-tipo-cuantia" id="tc-indet" value="indet" onchange="onTipoCuantia()"><label for="tc-indet">Indeterminada</label>
+        </div>
+      </div>
+      <!-- Cuantía determinada -->
+      <div id="bloque-cuantia-det" class="fg fg2">
+        <div class="field" id="campo-cuantia-wrap">
+          <label class="lbl" id="lbl-cuantia">Cuantía del procedimiento (€)</label>
+          <div class="euro-wrap"><input type="number" id="f-cuantia" placeholder="15.000" min="0" oninput="checkTercio()" /></div>
+        </div>
+        <div class="field" id="campo-comp-wrap">
+          <label class="lbl">Complejidad</label>
+          <select class="sel" id="f-comp">
+            <option value="normal">Normal</option>
+            <option value="simple">Sencilla (−30%)</option>
+            <option value="compleja">Compleja (+30%)</option>
+          </select>
+        </div>
+      </div>
+      <!-- Cuantía indeterminada -->
+      <div id="bloque-cuantia-indet" style="display:none">
+        <div class="note" style="margin-bottom:12px">
+          <strong>Cuantía indeterminada:</strong> El ICATF fija importes orientativos. Selecciona el que corresponda al procedimiento y ajústalo si procede conforme a la complejidad del asunto.
+        </div>
+        <div class="fg fg2">
+          <div class="field">
+            <label class="lbl">Importe orientativo ICATF (€)</label>
+            <div class="euro-wrap"><input type="number" id="f-cuantia-indet" placeholder="0,00" min="0" /></div>
+            <small style="font-size:9px;color:var(--grey);margin-top:4px;display:block">Criterio 35 para indeterminada: orientativo 2.082,15 €</small>
+          </div>
+          <div class="field">
+            <label class="lbl">Referencias orientativas frecuentes</label>
+            <select class="sel" onchange="selImporteIndet(this)">
+              <option value="">— Seleccionar importe de referencia —</option>
+              <option value="2082.15">C.35 genérico indeterminado: 2.082,15 €</option>
+              <option value="2279.94">C.62 Propiedad horizontal: 2.279,94 €</option>
+              <option value="1814.87">C.88 Separación contenciosa: 1.814,87 €</option>
+              <option value="1380.30">C.89 Modif. medidas contencioso: 1.380,30 €</option>
+              <option value="692.30">C.89 Modif. medidas mutuo acuerdo: 692,30 €</option>
+              <option value="947.10">C.148 C-A indeterminado: 947,10 €</option>
+              <option value="2082.15">C.148 C-A cuantía indeterminada alta: 2.082,15 €</option>
+              <option value="1578.15">C.60 Tutela sumaria posesoria: 1.578,15 € base</option>
+              <option value="568.05">C.84 Jurisdicción voluntaria: 568,05 €</option>
+              <option value="379.05">C.24 Sucesoria sin complejidad: 379,05 €</option>
+            </select>
+          </div>
+        </div>
+        <div class="fg fg1">
+          <div class="field">
+            <label class="lbl">Complejidad</label>
+            <select class="sel" id="f-comp-indet">
+              <option value="normal">Normal</option>
+              <option value="simple">Sencilla (−30%)</option>
+              <option value="compleja">Compleja (+30%)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FASES (verbal/ordinario) -->
+    <div id="bloque-fases-verbal" style="display:none">
+      <div class="sdiv"><span>Fase alcanzada — Parte actora</span></div>
+      <select class="sel" id="f-fase-v">
+        <option value="completo">Demanda + juicio oral completo (100%)</option>
+        <option value="demanda">Solo demanda, sin juicio (50%)</option>
+        <option value="allanamiento">Allanamiento del demandado (75%)</option>
+      </select>
+    </div>
+
+    <div id="bloque-fases-ordinario" style="display:none">
+      <div class="sdiv"><span>Fase procesal alcanzada</span></div>
+      <div class="fase-strip" style="grid-template-columns:repeat(3,1fr)">
+        <div class="fb on" id="fo1"><div class="fb-pct">50%</div><div class="fb-lbl">Alegaciones</div><div class="fb-sub">Demanda / contestación</div></div>
+        <div class="fb" id="fo2"><div class="fb-pct">+10%</div><div class="fb-lbl">Audiencia previa</div><div class="fb-sub">Acumulable</div></div>
+        <div class="fb" id="fo3"><div class="fb-pct">+40%</div><div class="fb-lbl">Juicio oral</div><div class="fb-sub">Acumulable</div></div>
+      </div>
+      <select class="sel" id="f-fase-o" onchange="updFaseOrd()">
+        <option value="alegaciones">Solo alegaciones (50%)</option>
+        <option value="audiencia">Alegaciones + Audiencia previa (60%)</option>
+        <option value="completo" selected>Hasta sentencia — completo (100%)</option>
+      </select>
+    </div>
+
+    <!-- POSICIÓN PROCESAL (verbal) -->
+    <div id="bloque-posicion-verbal" style="display:none">
+      <div class="sdiv"><span>Posición procesal</span></div>
+      <div class="pills">
+        <input type="radio" name="f-pos-v" id="v-actor" value="actor" checked><label for="v-actor">Parte actora</label>
+        <input type="radio" name="f-pos-v" id="v-dem" value="demandado"><label for="v-dem">Parte demandada</label>
+      </div>
+    </div>
+
+    <!-- RECONVENCIÓN -->
+    <div id="bloque-rc" style="display:none">
+      <div class="sdiv"><span>Reconvención y pluralidad</span></div>
+      <div class="fg fg3">
+        <div class="field">
+          <label class="lbl">¿Reconvención?</label>
+          <select class="sel" id="f-rc" onchange="onRcChange()">
+            <option value="no">No</option>
+            <option value="misma">Sí — misma cuestión</option>
+            <option value="distinta">Sí — cuestión distinta</option>
+          </select>
+        </div>
+        <div class="field" id="f-rc-cuantia-wrap" style="display:none">
+          <label class="lbl">Cuantía reconvención (€)</label>
+          <div class="euro-wrap"><input type="number" id="f-rc-c" placeholder="5.000" min="0" /></div>
+        </div>
+        <div class="field">
+          <label class="lbl">Pluralidad de clientes</label>
+          <select class="sel" id="f-plural">
+            <option value="no">No</option>
+            <option value="si">Sí (+30%)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- APELACIÓN OPTIONS -->
+    <div id="bloque-ape" style="display:none">
+      <div class="sdiv"><span>Circunstancias de la apelación</span></div>
+      <div class="fg fg3">
+        <div class="field">
+          <label class="lbl">Fase alcanzada</label>
+          <select class="sel" id="f-ape-fase" onchange="updApeStrip()">
+            <option value="preparacion">Solo preparación (20%)</option>
+            <option value="interposicion" selected>Preparación + Interposición (100%)</option>
+            <option value="vista">Preparación + Interposición + Vista oral</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="lbl">Posición en el recurso</label>
+          <select class="sel" id="f-ape-pos">
+            <option value="apelante">Apelante</option>
+            <option value="apelado">Apelado</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="lbl">¿Prueba en 2ª instancia?</label>
+          <select class="sel" id="f-ape-prueba">
+            <option value="no">No</option>
+            <option value="si">Sí (+15%)</option>
+          </select>
+        </div>
+      </div>
+      <div class="fase-strip" id="ape-strip" style="grid-template-columns:1fr 1fr">
+        <div class="fb on" id="ape-f1"><div class="fb-pct">20%</div><div class="fb-lbl">Preparación</div></div>
+        <div class="fb on" id="ape-f2"><div class="fb-pct">80%</div><div class="fb-lbl">Interposición</div></div>
+      </div>
+    </div>
+
+    <!-- NOTA fijos -->
+    <div id="bloque-fijo" style="display:none">
+      <div class="note" id="nota-fijo"></div>
+    </div>
+
+    <!-- IGIC -->
+    <div class="sdiv"><span>IGIC sobre honorarios del letrado</span></div>
+    <div class="igic-row">
+      <div class="igic-row-left">
+        <div class="igic-row-title">¿Aplicar IGIC 7% a los honorarios?</div>
+        <div class="igic-row-sub">Solo sobre honorarios del letrado · No sobre resto de partidas art. 241 LEC · No marcar si el letrado está exento o no sujeto a IGIC</div>
+      </div>
+      <div class="pills" style="min-width:180px">
+        <input type="radio" name="f-igic" id="igic-no" value="no" checked><label for="igic-no">No</label>
+        <input type="radio" name="f-igic" id="igic-si" value="si"><label for="igic-si">Sí, IGIC 7%</label>
+      </div>
+    </div>
+
+    <div class="tercio-box" id="tercio-box"></div>
+
+    <!-- ART. 241 LEC -->
+    <div id="art241-container"></div>
+
+    <button class="btn-calc" onclick="calcular()">Calcular costas totales</button>
+  </div>
+
+  <!-- ── RESULTADO ── -->
+  <div id="result">
+    <div class="rh">
+      <div class="rh-title" id="r-title">—</div>
+      <div class="rh-proc" id="r-proc">—</div>
+    </div>
+    <div class="rb" id="rb"></div>
+    <div class="rtotal">
+      <div class="rtotal-lbl">Total costas judiciales<small id="r-igic-lbl">Honorarios letrado + Art. 241 LEC</small></div>
+      <div class="rtotal-val" id="r-total">—</div>
+    </div>
+    <div class="result-actions">
+      <button class="btn-action btn-pdf" onclick="accionPremium('pdf')">📄 Descargar resultado PDF</button>
+      <button class="btn-action btn-tasacion" onclick="accionPremium('tasacion')">📝 Escrito de tasación</button>
+      <button class="btn-action" style="background:var(--gold);color:#fff" onclick="accionPremium('factura')">🧾 Generar factura</button>
+      <button class="btn-action btn-reset" onclick="resetCalc()">↺ Nueva tasación</button>
+    </div>
+  </div>
+
+</div><!-- end wrap -->
+<!-- ── PAYWALL MODAL ── -->
+<div id="paywall-overlay">
+  <div id="paywall-modal">
+    <div class="pw-header">
+      <div class="pw-badge">⚖️ Calculadora Costas ICATF</div>
+      <h2>Acceso profesional completo</h2>
+      <p>Sin suscripción · Sin permanencia · Cancela cuando quieras</p>
+    </div>
+    <div class="pw-body">
+      <div class="pw-precio">
+        <div class="importe">3,99 €</div>
+        <div class="periodo">al mes · IVA/IGIC no incluido</div>
+      </div>
+      <ul class="pw-features">
+        <li><span class="ic">✓</span><div><strong>60 tipos de procedimiento</strong> — Ejecuciones, Familia, Laboral, Penal, Contencioso-administrativo, Concursal y más</div></li>
+        <li><span class="ic">✓</span><div><strong>Minuta PDF editable</strong> con desglose completo tramo a tramo de la escala ICATF</div></li>
+        <li><span class="ic">✓</span><div><strong>Escrito de tasación de costas</strong> listo para presentar — con procurador o letrado</div></li>
+        <li><span class="ic">✓</span><div><strong>Factura de honorarios</strong> con IGIC e IRPF configurable</div></li>
+        <li><span class="ic">✓</span><div><strong>Validaciones automáticas</strong> — límite del tercio, cuantía verbal/ordinario, errores de procedimiento</div></li>
+        <li><span class="ic">✓</span><div><strong>Cuantía indeterminada</strong> con importes orientativos por tipo de procedimiento</div></li>
+        <li><span class="ic ic-lock">🆓</span><div>Juicio Verbal y Ordinario siempre <strong>gratuitos</strong></div></li>
+      </ul>
+      <a href="https://buy.stripe.com/bJe3cv3WC0454C69UMbEA00" target="_blank" class="pw-cta" id="pw-stripe-btn">
+        Suscribirme — 3,99 €/mes →
+      </a>
+      <button class="pw-gratis-btn" onclick="cerrarPaywall()">
+        Continuar con la versión gratuita (solo Verbal y Ordinario)
+      </button>
+    </div>
+  </div>
+</div>
+
+</div><!-- end main-app -->
+
+<!-- ── MODAL TASACIÓN DE COSTAS ── -->
+<div id="tasacion-overlay">
+  <div id="tasacion-modal">
+    <div class="tasacion-header">
+      <h3>Escrito de tasación de costas</h3>
+      <div class="tasacion-header-right">
+        <button class="btn-print" onclick="imprimirTasacion()">🖨 Imprimir / PDF</button>
+        <button class="btn-close-modal" onclick="cerrarTasacion()">✕</button>
+      </div>
+    </div>
+    <div class="tasacion-body">
+      <p style="font-size:11px;color:var(--grey);line-height:1.6;margin-bottom:20px;">Revisa y edita los datos antes de imprimir. El documento se genera automáticamente con los datos del cálculo.</p>
+      <div class="fg fg2">
+        <div class="tas-field">
+          <label>Tribunal / Órgano judicial</label>
+          <input type="text" id="tas-juzgado" class="sel" placeholder="Plaza nº 3 del Tribunal de Instancia, Sección Civil — Santa Cruz de Tenerife" />
+          <small style="font-size:9px;color:var(--grey);margin-top:3px;display:block">Nueva denominación (LO 1/2025): Plaza Nº X del Tribunal de Instancia / Instrucción — Sección Civil, Penal o Familia</small>
+        </div>
+        <div class="tas-field">
+          <label>Número de autos</label>
+          <input type="text" id="tas-autos" class="sel" placeholder="245/2024" />
+        </div>
+      </div>
+      <div class="fg fg3">
+        <div class="tas-field">
+          <label>Procurador/a que presenta</label>
+          <input type="text" id="tas-procurador" class="sel" placeholder="Nombre del procurador/a (si lo hay)" />
+        </div>
+        <div class="tas-field">
+          <label>Letrado/a que dirige</label>
+          <input type="text" id="tas-letrado" class="sel" />
+        </div>
+        <div class="tas-field">
+          <label>Nº colegiación letrado/a</label>
+          <input type="text" id="tas-colegiada" class="sel" />
+        </div>
+      </div>
+      <div class="fg fg2">
+        <div class="tas-field">
+          <label>Parte favorecida <span style="font-weight:300;font-size:9px;color:var(--grey2)">(opcional)</span></label>
+          <input type="text" id="tas-cliente" class="sel" placeholder="Puedes dejarlo en blanco" />
+        </div>
+        <div class="tas-field">
+          <label>Parte condenada en costas <span style="font-weight:300;font-size:9px;color:var(--grey2)">(opcional)</span></label>
+          <input type="text" id="tas-contraria" class="sel" placeholder="Puedes dejarlo en blanco" />
+        </div>
+      </div>
+      <div class="fg fg3">
+        <div class="tas-field">
+          <label>Tipo de resolución</label>
+          <select class="sel" id="tas-resolucion">
+            <option value="sentencia">Sentencia</option>
+            <option value="auto">Auto</option>
+          </select>
+        </div>
+        <div class="tas-field">
+          <label>Fecha de la resolución</label>
+          <input type="date" id="tas-fecha" class="sel" />
+        </div>
+        <div class="tas-field">
+          <label>Localidad del escrito</label>
+          <input type="text" id="tas-localidad" class="sel" value="Santa Cruz de Tenerife" />
+        </div>
+      </div>
+      <button class="btn-calc" style="margin-top:8px;font-size:9px;padding:12px 24px" onclick="generarTasacion()">Generar documento →</button>
+      <div id="tasacion-preview"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL FACTURA ── -->
+<div id="factura-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:none;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto;">
+  <div style="background:var(--bg);border-radius:12px;width:100%;max-width:700px;box-shadow:0 24px 64px rgba(0,0,0,.2);overflow:hidden;">
+    <div class="tasacion-header" style="background:var(--gold)">
+      <h3>Generar factura de honorarios</h3>
+      <div class="tasacion-header-right">
+        <button class="btn-print" onclick="imprimirFactura()">🖨 Imprimir / PDF</button>
+        <button class="btn-close-modal" onclick="document.getElementById('factura-overlay').style.display='none'">✕</button>
+      </div>
+    </div>
+    <div class="tasacion-body">
+      <p style="font-size:11px;color:var(--grey);line-height:1.6;margin-bottom:20px;">Factura de honorarios conforme a criterios ICATF. <strong>No es la minuta de tasación de costas</strong> — es el documento para facturar al cliente.</p>
+      <div class="fg fg2">
+        <div class="tas-field">
+          <label>Número de factura</label>
+          <input type="text" id="fac-num" class="sel" placeholder="Ej: 2025/001" />
+        </div>
+        <div class="tas-field">
+          <label>Fecha de la factura</label>
+          <input type="date" id="fac-fecha" class="sel" />
+        </div>
+      </div>
+      <div class="fg fg2">
+        <div class="tas-field">
+          <label>Nombre / Razón social del cliente</label>
+          <input type="text" id="fac-cliente" class="sel" placeholder="A quién se factura" />
+        </div>
+        <div class="tas-field">
+          <label>NIF/CIF del cliente</label>
+          <input type="text" id="fac-nif" class="sel" placeholder="Ej: 12345678A" />
+        </div>
+      </div>
+      <div class="fg fg2">
+        <div class="tas-field">
+          <label>Descripción del servicio</label>
+          <input type="text" id="fac-concepto" class="sel" placeholder="Honorarios profesionales — tipo de procedimiento" />
+        </div>
+        <div class="tas-field">
+          <label>Referencia (autos / expediente)</label>
+          <input type="text" id="fac-ref" class="sel" placeholder="Ej: Autos 245/2024" />
+        </div>
+      </div>
+      <div class="fg fg3">
+        <div class="tas-field">
+          <label>Base imponible (€)</label>
+          <div class="euro-wrap"><input type="number" id="fac-base" class="sel" placeholder="0,00" oninput="calcFactura()" /></div>
+        </div>
+        <div class="tas-field">
+          <label>IGIC (%)</label>
+          <select class="sel" id="fac-igic" onchange="calcFactura()">
+            <option value="0">Exento / No sujeto (0%)</option>
+            <option value="7" selected>IGIC general (7%)</option>
+            <option value="3">IGIC reducido (3%)</option>
+          </select>
+        </div>
+        <div class="tas-field">
+          <label>Retención IRPF (%)</label>
+          <select class="sel" id="fac-irpf" onchange="calcFactura()">
+            <option value="0">Sin retención (0%)</option>
+            <option value="15" selected>15% — General autónomos</option>
+            <option value="7">7% — Inicio actividad</option>
+            <option value="19">19% — Sociedades</option>
+            <option value="24">24% — No residentes</option>
+          </select>
+        </div>
+      </div>
+      <div style="background:var(--bg2);border-radius:8px;padding:16px 20px;margin:8px 0 16px;border:1.5px solid var(--grey-line)">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--grey);padding:4px 0">
+          <span>Base imponible</span><span id="fac-r-base">—</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--grey);padding:4px 0">
+          <span id="fac-r-igic-lbl">IGIC (7%)</span><span id="fac-r-igic">—</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--warn);padding:4px 0">
+          <span id="fac-r-irpf-lbl">Retención IRPF (15%)</span><span id="fac-r-irpf">—</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:16px;font-weight:700;color:var(--navy);padding:10px 0 4px;border-top:1px solid var(--grey-line);margin-top:8px">
+          <span>TOTAL A PAGAR</span><span id="fac-r-total">—</span>
+        </div>
+      </div>
+      <button class="btn-calc" style="margin-top:4px;font-size:9px;padding:12px 24px;background:var(--gold)" onclick="generarFactura()">Generar factura →</button>
+      <div id="factura-preview" style="margin-top:20px;background:var(--bg2);border:1px solid var(--grey-line);border-radius:8px;padding:32px;font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--text);line-height:2;display:none;white-space:pre-wrap"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════
+// CONFIGURACIÓN STRIPE — reemplaza esta URL con tu enlace real
+// ════════════════════════════════════════════════════════════
+const STRIPE_URL = 'https://buy.stripe.com/bJe3cv3WC0454C69UMbEA00'; // ej: https://buy.stripe.com/xxxxx
+
+// Procedimientos gratuitos
+const PROCS_GRATIS = ['verbal', 'ordinario'];
+
+function esPremium(proc){
+  return proc && !PROCS_GRATIS.includes(proc);
+}
+
+function esSuscriptor(){
+  // Por ahora: comprueba si hay un flag en localStorage
+  // Cuando conectes Stripe Webhook, actualizarás esto con verificación real
+  return localStorage.getItem('calc-suscriptor') === 'activo';
+}
+
+function mostrarPaywall(origen){
+  // Actualizar el enlace de Stripe por si acaso
+  document.getElementById('pw-stripe-btn').href = STRIPE_URL;
+  document.getElementById('paywall-overlay').classList.add('visible');
+}
+
+function cerrarPaywall(){
+  document.getElementById('paywall-overlay').classList.remove('visible');
+  // Si venía de un procedimiento premium, resetear el selector
+  const proc = STATE.proc;
+  if(esPremium(proc)){
+    document.getElementById('proc-sel').value = '';
+    document.getElementById('proc-info').style.display = 'none';
+    document.getElementById('form-main').style.display = 'none';
+    document.getElementById('result').style.display = 'none';
+    STATE.proc = '';
+  }
+}
+
+// Interceptar acciones premium en el resultado
+function accionPremium(accion){
+  if(!esSuscriptor()){
+    mostrarPaywall(accion);
+    return;
+  }
+  if(accion==='pdf') exportarResultadoPDF();
+  if(accion==='tasacion') abrirTasacion();
+  if(accion==='factura') abrirFactura();
+}
+
+// Cerrar paywall al hacer clic fuera del modal
+document.getElementById('paywall-overlay').addEventListener('click', function(e){
+  if(e.target === this) cerrarPaywall();
+});
+
+
+let USER = {};
+function registrar(){
+  const n=document.getElementById('reg-nombre').value.trim();
+  const d=document.getElementById('reg-despacho').value.trim();
+  const c=document.getElementById('reg-colegiada').value.trim();
+  const e=document.getElementById('reg-email').value.trim();
+  if(!n){alert('Por favor, introduce tu nombre.');return;}
+  USER={nombre:n,despacho:d,colegiada:c,email:e};
+  localStorage.setItem('calc-user',JSON.stringify(USER));
+  document.getElementById('reg-overlay').style.display='none';
+  document.getElementById('main-app').style.display='block';
+  document.getElementById('hdr-name').textContent=n;
+  document.getElementById('hdr-despacho').textContent=d;
+}
+// Cargar usuario guardado
+(function(){
+  const s=localStorage.getItem('calc-user');
+  if(s){try{USER=JSON.parse(s);document.getElementById('reg-overlay').style.display='none';document.getElementById('main-app').style.display='block';document.getElementById('hdr-name').textContent=USER.nombre||'';document.getElementById('hdr-despacho').textContent=USER.despacho||'';}catch(e){}}
+})();
+
+// ════════════════════════════════════════════════════════════
+// ESCALAS C.35 y C.36 (con +5% baremo y +15% actualización)
+// ════════════════════════════════════════════════════════════
+// ─── ESCALAS: devuelven {total, bruto, desglose[]} ───────────────────────────
+const TRAMOS35=[
+  {lim:1202,   min:240, pct:.32, lbl:'Hasta 1.202 €'},
+  {lim:3005,   min:null,pct:.22, lbl:'Exceso hasta 3.005 €'},
+  {lim:18030,  min:null,pct:.15, lbl:'Exceso hasta 18.030 €'},
+  {lim:30051,  min:null,pct:.12, lbl:'Exceso hasta 30.051 €'},
+  {lim:60101,  min:null,pct:.08, lbl:'Exceso hasta 60.101 €'},
+  {lim:150253, min:null,pct:.06, lbl:'Exceso hasta 150.253 €'},
+  {lim:300506, min:null,pct:.05, lbl:'Exceso hasta 300.506 €'},
+  {lim:601012, min:null,pct:.04, lbl:'Exceso hasta 601.012 €'},
+  {lim:1202024,min:null,pct:.02, lbl:'Exceso hasta 1.202.024 €'},
+  {lim:3005061,min:null,pct:.01, lbl:'Exceso hasta 3.005.061 €'},
+  {lim:Infinity,min:null,pct:.005,lbl:'Exceso sobre 3.005.061 €'},
+];
+const TRAMOS36=[
+  {lim:1202,  min:150, pct:.25, lbl:'Hasta 1.202 €'},
+  {lim:3005,  min:null,pct:.14, lbl:'Exceso hasta 3.005 €'},
+  {lim:9015,  min:null,pct:.11, lbl:'Exceso hasta 9.015 €'},
+  {lim:30051, min:null,pct:.06, lbl:'Exceso hasta 30.051 €'},
+  {lim:60101, min:null,pct:.04, lbl:'Exceso hasta 60.101 €'},
+  {lim:300506,min:null,pct:.03, lbl:'Exceso hasta 300.506 €'},
+  {lim:601012,min:null,pct:.015,lbl:'Exceso hasta 601.012 €'},
+  {lim:Infinity,min:null,pct:.005,lbl:'Exceso sobre 601.012 €'},
+];
+
+function calcEscala(c, tramos){
+  if(!c||c<=0)return {bruto:0,total:0,desglose:[]};
+  let prev=0,bruto=0;
+  const desglose=[];
+  for(const t of tramos){
+    if(c<=prev)break;
+    const base=Math.min(c,t.lim)-prev;
+    const parcial=base*t.pct;
+    if(parcial>0.005)
+      desglose.push({lbl:`${t.lbl} × ${(t.pct*100).toFixed(1)}%`,base,parcial});
+    bruto+=parcial;
+    prev=t.lim;
+    if(c<=t.lim)break;
+  }
+  const minimo=tramos[0].min||0;
+  if(bruto<minimo){bruto=minimo;}
+  const total=bruto*1.05*1.15;
+  return {bruto,total,desglose};
+}
+
+function e35(c){return calcEscala(c,TRAMOS35).total;}
+function e36(c){return calcEscala(c,TRAMOS36).total;}
+function e35d(c){return calcEscala(c,TRAMOS35);}
+function e36d(c){return calcEscala(c,TRAMOS36);}
+
+function e51(renta){
+  if(!renta||renta<=0)return 0;
+  let t=0;
+  if(renta<=6010)t=Math.max(renta*.10,301);
+  else if(renta<=30051)t=601+(renta-6010)*.04;
+  else t=601+(30051-6010)*.04+(renta-30051)*.02;
+  return t*1.05*1.15;
+}
+
+function e63(pasivo){
+  // C.63 Concurso
+  if(!pasivo||pasivo<=0)return 0;
+  const tramos=[
+    {lim:30051,pct:.14},{lim:150253,pct:.06},
+    {lim:450759,pct:.03},{lim:1202000,pct:.015},{lim:Infinity,pct:.0075}
+  ];
+  let prev=0,t=0;
+  for(const x of tramos){
+    if(pasivo<=prev)break;
+    t+=(Math.min(pasivo,x.lim)-prev)*x.pct;
+    prev=x.lim;if(pasivo<=x.lim)break;
+  }
+  return t*1.05*1.15;
+}
+
+function eur(n){return n.toLocaleString('es-ES',{style:'currency',currency:'EUR',maximumFractionDigits:2});}
+
+// ════════════════════════════════════════════════════════════
+// DEFINICIÓN DE PROCEDIMIENTOS
+// ════════════════════════════════════════════════════════════
+const PROCS={
+  'verbal':     {info:'<strong>C.35 ICATF · 100%</strong> — Escala declarativos completa. Parte actora: 50% demanda + 50% juicio. Parte demandada: 100% (o 75% si allanamiento).'},
+  'ordinario':  {info:'<strong>C.35 ICATF · 100%</strong> — Juicio ordinario completo. Alegaciones 50% · Audiencia previa +10% · Juicio oral +40%.'},
+  'ej_jud_sin': {info:'<strong>C.40-A · 50% de C.36</strong> — Ejecución de resolución judicial o arbitral sin oposición. Reducción prudencial si las actuaciones son de escasa importancia.'},
+  'ej_jud_con': {info:'<strong>C.40-B · Escala C.35 completa</strong> — Ejecución de resolución judicial o arbitral con oposición.'},
+  'ej_prov_sin':{info:'<strong>C.39 · 50% de C.36</strong> — Ejecución provisional de sentencia de condena sin oposición.'},
+  'ej_prov_con':{info:'<strong>C.39 · 100% de C.36</strong> — Ejecución provisional de sentencia de condena con oposición.'},
+  'ej_apremio': {info:'<strong>C.44 · 50% de C.36</strong> — Procedimiento de apremio. Reducción prudencial si las actuaciones son de escasa importancia.'},
+  'ej_no_din':  {info:'<strong>C.45 · 30% de C.35</strong> — Ejecución no dineraria: hacer, no hacer o entrega de bienes. Base: valor de la obligación.'},
+  'ej_dan_con': {info:'<strong>C.46 · 20% de C.35</strong> — Liquidación de daños, frutos y rentas con conformidad del deudor.'},
+  'ej_dan_sin': {info:'<strong>C.46 · 50% de C.35</strong> — Liquidación de daños, frutos y rentas sin conformidad del deudor.'},
+  'ej_tit_sin': {info:'<strong>C.41-A · Escala C.36 completa</strong> — Ejecución fundada en título no judicial ni arbitral, sin oposición.'},
+  'ej_tit_con': {info:'<strong>C.41-B · Escala C.35</strong> — Ejecución fundada en título no judicial ni arbitral, con oposición.'},
+  'cambiario_sin':{info:'<strong>C.36 completa</strong> — Juicio cambiario sin oposición. Base: cantidad por la que se despachó ejecución.'},
+  'cambiario_con':{info:'<strong>C.37 · Escala C.35</strong> — Juicio cambiario con oposición. Base: cantidad reclamada en la demanda.'},
+  'monitorio_pet':{info:'<strong>C.38 · Fijo: 172,50 €</strong> (150 € × 1,05 × 1,15) — Redacción de la petición inicial del proceso monitorio.',fijo:150*1.05*1.15},
+  'monitorio_op': {info:'<strong>C.38 · Fijo: 172,50 €</strong> (150 € × 1,05 × 1,15) — Escrito de oposición a la petición inicial del monitorio.',fijo:150*1.05*1.15},
+  'monitorio_dec':{info:'<strong>C.35 completa</strong> — Continuación del monitorio como juicio declarativo ordinario o verbal.'},
+  'hipot_sin':  {info:'<strong>C.43 · C.36 + 30%</strong> — Procedimiento hipotecario o de prenda sin oposición.'},
+  'hipot_con':  {info:'<strong>C.43 · Escala C.35</strong> — Procedimiento hipotecario o de prenda con oposición.'},
+  'rep':        {info:'<strong>C.70 · Fijo: 217,35 €</strong> (189 € × 1,05 × 1,15) — Recurso de reposición contra autos y providencias.',fijo:189*1.05*1.15},
+  'ape_mismo':  {info:'<strong>C.71 · 50% de C.35</strong> — Recurso de apelación. Mismo letrado que en primera instancia.'},
+  'ape_distinto':{info:'<strong>C.71 · 60% de C.35</strong> — Recurso de apelación. Letrado distinto al de primera instancia.'},
+  'queja':      {info:'<strong>C.73 · Fijo: 362,25 €</strong> (315 € × 1,05 × 1,15) — Recurso de queja.',fijo:315*1.05*1.15},
+  'inf_proc':   {info:'<strong>C.74 · 75% de C.35</strong> — Recurso extraordinario por infracción procesal.'},
+  'casacion_civ':{info:'<strong>C.75 · 80% de C.35</strong> — Recurso de casación civil. Distribución: preparación 20% · interposición 80%.'},
+  'med_prev':   {info:'<strong>C.86 · Fijo: 435,91 €</strong> (379,05 € × 1,05 × 1,15) — Medidas provisionales previas a la demanda.',fijo:379.05*1.05*1.15},
+  'med_simul':  {info:'<strong>C.86 · Fijo: 507,15 €</strong> (441 € × 1,05 × 1,15) — Medidas provisionales simultáneas a la demanda.',fijo:441*1.05*1.15},
+  'div_ma_sep': {info:'<strong>C.87 · Fijo: 726,94 €</strong> (632,10 € × 1,05 × 1,15) — Tramitación del procedimiento de separación de mutuo acuerdo.',fijo:632.10*1.05*1.15},
+  'div_ma_div': {info:'<strong>C.87 · Fijo: 1.089,17 €</strong> (947,10 € × 1,05 × 1,15) — Tramitación del procedimiento de divorcio de mutuo acuerdo.',fijo:947.10*1.05*1.15},
+  'convenio':   {info:'<strong>C.87 · Fijo: 508,36 €</strong> (442,05 € × 1,05 × 1,15) — Negociación y redacción del convenio regulador.',fijo:442.05*1.05*1.15},
+  'sep_cont':   {info:'<strong>C.88 · Fijo: 1.814,87 €</strong> (1.578,15 € × 1,05 × 1,15) — Separación o divorcio contencioso, tramitación completa hasta sentencia.',fijo:1578.15*1.05*1.15},
+  'mod_med_cont':{info:'<strong>C.89 · Fijo: 1.380,30 €</strong> (1.200 € × 1,05 × 1,15) — Modificación de medidas en procedimiento contencioso.',fijo:1200*1.05*1.15},
+  'mod_med_ma': {info:'<strong>C.89 · Fijo: 692,30 €</strong> (602 € × 1,05 × 1,15) — Modificación de medidas por mutuo acuerdo.',fijo:602*1.05*1.15},
+  'nulidad_mat':{info:'<strong>C.90 · 150% de C.88 = Fijo: 2.722,31 €</strong> — Nulidad matrimonial civil.',fijo:1578.15*1.5*1.05*1.15},
+  'desahucio':  {info:'<strong>C.51</strong> — Desahucio por falta de pago o expiración. Base: renta anual. Mínimo 301 €. Escala: hasta 6.010 € → 10%; exceso hasta 30.051 → 4%; exceso → 2%.'},
+  'precario_sin':{info:'<strong>C.52 · C.36</strong> — Juicio verbal por precario sin oposición. Base: renta anual de arrendamientos análogos.'},
+  'precario_con':{info:'<strong>C.52 · C.35</strong> — Juicio verbal por precario con oposición. Base: renta anual de arrendamientos análogos.'},
+  'concurso':   {info:'<strong>C.63</strong> — Concurso de acreedores (letrado del concursado). Base: pasivo del balance. Escala propia.'},
+  'incidente_con':{info:'<strong>C.66 · C.35 −25%</strong> — Incidente concursal de cuantía determinada.'},
+  'cauc_sin':   {info:'<strong>C.49 · C.36 −25%</strong> — Medidas cautelares sin oposición. Base: cuantía del procedimiento o interés económico de las medidas.'},
+  'cauc_con':   {info:'<strong>C.49 · C.35 −25%</strong> — Medidas cautelares con oposición.'},
+  'division':   {info:'<strong>C.61 · 50% de C.35</strong> — División judicial de la herencia. Base: haber real del cliente.'},
+  'ph_det':     {info:'<strong>C.62 · C.35</strong> — Propiedad horizontal con cuantía determinada.'},
+  'ph_indet':   {info:'<strong>C.62 · Fijo: 2.279,94 €</strong> (1.983 € × 1,05 × 1,15) — Propiedad horizontal de cuantía indeterminada.',fijo:1983*1.05*1.15},
+  'ca_ord':     {info:'<strong>C.148 · C.35</strong> — Recurso contencioso-administrativo ordinario ante Juzgado o Sala.'},
+  'ca_abrev':   {info:'<strong>C.149 · C.35 −20%</strong> — Recurso contencioso-administrativo por procedimiento abreviado.'},
+  'ca_ape':     {info:'<strong>C.152 · 70% de lo minutado en instancia</strong> — Recurso de apelación contencioso-administrativo.'},
+  'ca_cas':     {info:'<strong>C.153 · 80% de C.35</strong> — Recurso de casación contencioso-administrativo.'},
+  'lab_cant':   {info:'<strong>C.167 · C.35</strong> — Reclamación de cantidad en jurisdicción laboral.'},
+  'lab_despido':{info:'<strong>C.167 · C.35</strong> — Despido. Base: importe de la indemnización más salarios de tramitación que corresponderían si fuese improcedente o nulo.'},
+  'suplica_mismo':{info:'<strong>C.169 · 50% de lo minutado en instancia</strong> — Recurso de suplicación, mismo letrado que en instancia.'},
+  'suplica_otro':{info:'<strong>C.169 · 75% de C.35</strong> — Recurso de suplicación, letrado distinto al de instancia.'},
+  'det':        {info:'<strong>C.98 · Fijo: 181,13 €</strong> (157,50 € × 1,05 × 1,15) — Asistencia a detenido o preso.',fijo:157.50*1.05*1.15},
+  'abrev_conf': {info:'<strong>C.106 · Fijo: 230,03 €</strong> (200 € × 1,05 × 1,15) — Procedimiento abreviado en Juzgado de lo Penal con conformidad.',fijo:200*1.05*1.15},
+  'abrev_disc_np':{info:'<strong>C.106 · Fijo: 345,71 €</strong> (300,51 € × 1,05 × 1,15) — Procedimiento abreviado en Juzgado de lo Penal con disconformidad, pena no privativa de libertad.',fijo:300.51*1.05*1.15},
+  'abrev_disc_p':{info:'<strong>C.106 · Fijo: 691,27 €</strong> (601,10 € × 1,05 × 1,15) — Procedimiento abreviado en Juzgado de lo Penal con disconformidad, pena privativa de libertad.',fijo:601.10*1.05*1.15},
+  'sum_conf':   {info:'<strong>C.107 · Fijo: 253,58 €</strong> (220,50 € × 1,05 × 1,15) — Sumario o Abreviado ante la Audiencia con conformidad.',fijo:220.50*1.05*1.15},
+  'sum_disc':   {info:'<strong>C.107 · Fijo: 725,71 €</strong> (631,05 € × 1,05 × 1,15) — Sumario o Abreviado ante la Audiencia con disconformidad. Rango: 631,05 € – 1.803 € según gravedad de la pena.',fijo:631.05*1.05*1.15},
+  'ape_pen_np': {info:'<strong>C.113 · Fijo: 289,80 €</strong> (252 € × 1,05 × 1,15) — Recurso de apelación penal motivado, pena no privativa de libertad.',fijo:252*1.05*1.15},
+  'ape_pen_p':  {info:'<strong>C.113 · Fijo: 435,91 €</strong> (379,05 € × 1,05 × 1,15) — Recurso de apelación penal motivado, pena privativa de libertad.',fijo:379.05*1.05*1.15},
+  'conc_dem':   {info:'<strong>C.33 · Fijo: 181,13 €</strong> (157,50 € × 1,05 × 1,15) — Acto de conciliación, redacción de la demanda.',fijo:157.50*1.05*1.15},
+  'conc_sin':   {info:'<strong>C.34 · Fijo: 144,90 €</strong> (126 € × 1,05 × 1,15) — Acto de conciliación, asistencia al juicio sin avenencia.',fijo:126*1.05*1.15},
+  'conc_ave':   {info:'<strong>C.30 · 75% del pleito evitado</strong> — Conciliación con avenencia (transacción extrajudicial). Aplicar C.35 × 0,75 sobre la cuantía.'},
+};
+
+// ════════════════════════════════════════════════════════════
+// LÓGICA DEL SELECTOR
+// ════════════════════════════════════════════════════════════
+let STATE = {proc:'', cuantia:0, rows:[], honorarios:0, igic:0, art241:0, total:0};
+
+function onProcChange(){
+  const v=document.getElementById('proc-sel').value;
+  STATE.proc=v;
+
+  // ── Bloquear si es premium y no es suscriptor ──
+  if(esPremium(v) && !esSuscriptor()){
+    mostrarPaywall('selector');
+    document.getElementById('proc-sel').value='';
+    STATE.proc='';
+    document.getElementById('proc-info').style.display='none';
+    document.getElementById('form-main').style.display='none';
+    return;
+  }
+  const info=document.getElementById('proc-info');
+  const infoText=document.getElementById('proc-info-text');
+  if(!v){info.style.display='none';document.getElementById('form-main').style.display='none';return;}
+  const p=PROCS[v];
+  if(p){infoText.innerHTML=p.info;info.style.display='block';}
+  document.getElementById('form-main').style.display='block';
+  document.getElementById('result').style.display='none';
+  // mostrar/ocultar bloques
+  const bloques={
+    'bloque-cuantia': !p.fijo,
+    'bloque-fases-verbal': v==='verbal',
+    'bloque-posicion-verbal': v==='verbal',
+    'bloque-fases-ordinario': v==='ordinario',
+    'bloque-rc': ['verbal','ordinario','monitorio_dec','lab_cant','lab_despido','ca_ord','ca_abrev'].includes(v),
+    'bloque-ape': ['ape_mismo','ape_distinto','casacion_civ','inf_proc','suplica_otro','ca_ape','ca_cas'].includes(v),
+    'bloque-fijo': !!p.fijo,
+  };
+  for(const[id,show] of Object.entries(bloques)){
+    const el=document.getElementById(id);
+    if(el)el.style.display=show?'':'none';
+  }
+  if(p.fijo){
+    document.getElementById('nota-fijo').innerHTML=
+      `<span class="tag">${v.toUpperCase()}</span><strong>Importe fijo orientativo:</strong> ${eur(p.fijo)}<br><small style="font-size:10px;opacity:.7">${p.info}</small>`;
+  }
+  // label cuantía según procedimiento
+  const labels={
+    'desahucio':'Renta anual (€)','precario_sin':'Renta anual equivalente (€)','precario_con':'Renta anual equivalente (€)',
+    'concurso':'Pasivo del balance presentado (€)',
+    'ape_mismo':'Cuantía del procedimiento en 1ª instancia (€)','ape_distinto':'Cuantía del procedimiento en 1ª instancia (€)',
+    'ca_ape':'Honorarios de 1ª instancia (€)',
+    'suplica_mismo':'Honorarios minutados en instancia (€)',
+    'div_ma_sep':'—','div_ma_div':'—','convenio':'—',
+  };
+  const lbl=document.getElementById('lbl-cuantia');
+  if(lbl)lbl.textContent=labels[v]||'Cuantía del procedimiento (€)';
+  document.getElementById('tercio-box').style.display='none';
+  document.getElementById('tercio-box').className='tercio-box';
+  buildArt241('art241-container');
+}
+
+function updFaseOrd(){
+  const f=document.getElementById('f-fase-o').value;
+  document.getElementById('fo1').classList.add('on');
+  document.getElementById('fo2').classList.toggle('on',f==='audiencia'||f==='completo');
+  document.getElementById('fo3').classList.toggle('on',f==='completo');
+}
+function updApeStrip(){
+  const f=document.getElementById('f-ape-fase').value;
+  document.getElementById('ape-f1').classList.add('on');
+  document.getElementById('ape-f2').classList.toggle('on',f==='interposicion'||f==='vista');
+}
+function onTipoCuantia(){
+  const det=document.querySelector('input[name="f-tipo-cuantia"]:checked')?.value==='det';
+  document.getElementById('bloque-cuantia-det').style.display=det?'':'none';
+  document.getElementById('bloque-cuantia-indet').style.display=det?'none':'';
+}
+function selImporteIndet(sel){
+  if(sel.value)document.getElementById('f-cuantia-indet').value=sel.value;
+  sel.value='';
+}
+
+function onRcChange(){
+  document.getElementById('f-rc-cuantia-wrap').style.display=
+    document.getElementById('f-rc').value!=='no'?'':'none';
+}
+
+// ════════════════════════════════════════════════════════════
+// ART. 241 LEC
+// ════════════════════════════════════════════════════════════
+const PARTIDAS=[
+  {id:'derechos',lbl:'Derechos del procurador',sub:'Arancel de procuradores'},
+  {id:'tasas',lbl:'Tasas judiciales',sub:'Art. 241.1.7 LEC · Cuando corresponda'},
+  {id:'peritos',lbl:'Honorarios de peritos',sub:'Art. 241.1.4 LEC'},
+  {id:'testigos',lbl:'Gastos de testigos',sub:'Art. 241.1.5 LEC'},
+  {id:'notario',lbl:'Derechos del notario / registrador',sub:'Art. 241.1.3 LEC'},
+  {id:'publicacion',lbl:'Publicaciones / edictos',sub:'Art. 241.1.6 LEC'},
+  {id:'traducciones',lbl:'Traducciones / interpretaciones',sub:'Art. 241.1.2 LEC'},
+  {id:'otros',lbl:'Otros gastos acreditados',sub:'Art. 241.1 LEC'},
+];
+function buildArt241(containerId){
+  const c=document.getElementById(containerId);
+  if(!c)return;
+  let html=`<div class="art241-box">
+    <div class="art241-header" onclick="togArt241()">
+      <div class="art241-hdr-left">
+        <span class="tag">Art. 241 LEC</span>
+        <span class="art241-title">Otras partidas de costas</span>
+        <span class="art241-hsub">Derechos del procurador, peritos, tasas, publicaciones…</span>
+      </div>
+      <span class="art241-tog" id="art241-tog">+</span>
+    </div>
+    <div class="art241-body" id="art241-body">`;
+  for(const p of PARTIDAS){
+    html+=`<div class="partida-row">
+      <div class="p-lbl">${p.lbl}<small>${p.sub}</small></div>
+      <div class="euro-wrap"><input type="number" id="p-${p.id}" placeholder="0,00" min="0" oninput="updArt241Total()" style="padding:8px 10px 8px 26px;font-size:12px;border:1.5px solid var(--grey-line);border-radius:6px;font-family:'Montserrat',sans-serif;width:100%;" /></div>
+      <button class="p-clear" onclick="document.getElementById('p-${p.id}').value='';updArt241Total()">×</button>
+    </div>`;
+  }
+  html+=`<div class="art241-total-row">
+    <span class="art241-total-lbl">Total partidas Art. 241 LEC</span>
+    <span class="art241-total-val" id="art241-total-val">0,00 €</span>
+  </div></div></div>`;
+  c.innerHTML=html;
+}
+function togArt241(){
+  const b=document.getElementById('art241-body');
+  const t=document.getElementById('art241-tog');
+  b.classList.toggle('open');
+  t.classList.toggle('open');
+}
+function getArt241Total(){
+  return PARTIDAS.reduce((s,p)=>{
+    const v=parseFloat(document.getElementById('p-'+p.id)?.value)||0;
+    return s+v;
+  },0);
+}
+function updArt241Total(){
+  const t=getArt241Total();
+  const el=document.getElementById('art241-total-val');
+  if(el)el.textContent=eur(t);
+}
+
+// ════════════════════════════════════════════════════════════
+// TERCIO ART. 394.3 LEC
+// ════════════════════════════════════════════════════════════
+function checkTercio(){
+  const c=parseFloat(document.getElementById('f-cuantia')?.value)||0;
+  const proc=STATE.proc;
+  const box=document.getElementById('tercio-box');
+  if(!box)return;
+  if(c>0&&proc&&!PROCS[proc]?.fijo){
+    const lim=c/3;
+    const est=e35(c); // estimación orientativa
+    box.style.display='block';
+    if(est>lim){
+      box.className='tercio-box warn';
+      box.innerHTML=`<strong>⚠️ Atención · Art. 394.3 LEC:</strong> Los honorarios calculados podrían superar el tercio de la cuantía. Límite máximo orientativo: <strong>${eur(lim)}</strong>. El resultado final se ajustará si corresponde.`;
+    } else {
+      box.className='tercio-box ok';
+      box.innerHTML=`<strong>✓ Art. 394.3 LEC:</strong> Los honorarios calculados están dentro del límite del tercio (${eur(lim)}).`;
+    }
+  } else box.style.display='none';
+}
+
+// ════════════════════════════════════════════════════════════
+// CÁLCULO PRINCIPAL
+// ════════════════════════════════════════════════════════════
+// ─── VALIDACIONES ────────────────────────────────────────────────────────────
+function validar(proc, cuantia, esIndet){
+  const errores=[];
+  const avisos=[];
+
+  if(!proc){errores.push('Selecciona el tipo de procedimiento.');return{errores,avisos};}
+  if(cuantia<0){errores.push('La cuantía no puede ser negativa.');}
+
+  // Verbal: límite 15.000€ (art. 249 y 250.2 LEC, RD-ley 6/2023, en vigor 20/03/2024)
+  if(proc==='verbal'&&!esIndet&&cuantia>15000){
+    errores.push(`El Juicio Verbal solo aplica hasta 15.000 € (art. 249 y 250.2 LEC, reforma RD-ley 6/2023). Para cuantías superiores corresponde el Juicio Ordinario.`);
+  }
+  // Ordinario: sugiere verbal si ≤ 15.000€
+  if(proc==='ordinario'&&!esIndet&&cuantia>0&&cuantia<=15000){
+    avisos.push(`Para cuantías hasta 15.000 € corresponde el Juicio Verbal (art. 249 LEC, reforma 2024), no el Juicio Ordinario. ¿Es correcto el procedimiento seleccionado?`);
+  }
+  // Monitorio fijo — no necesita cuantía
+  if(['monitorio_pet','monitorio_op'].includes(proc)){}
+  // Monitorio declarativo: cuantía obligatoria
+  if(proc==='monitorio_dec'&&!esIndet&&cuantia<=0){
+    errores.push('Introduce la cuantía del juicio declarativo al que se transforma el monitorio.');
+  }
+  // Ejecuciones: cuantía requerida
+  if(['ej_jud_sin','ej_jud_con','ej_prov_sin','ej_prov_con','ej_apremio','ej_no_din','ej_dan_con','ej_dan_sin','ej_tit_sin','ej_tit_con'].includes(proc)&&!esIndet&&cuantia<=0){
+    errores.push('Introduce la cuantía despachada en ejecución.');
+  }
+  // Apelación: cuantía = cuantía 1ª instancia
+  if(['ape_mismo','ape_distinto'].includes(proc)&&cuantia<=0){
+    errores.push('Introduce la cuantía del procedimiento en 1ª instancia para calcular la apelación.');
+  }
+  // Concurso: el pasivo debe ser > 0
+  if(proc==='concurso'&&cuantia<=0){
+    errores.push('Introduce el pasivo del balance para calcular los honorarios en concurso (C.63).');
+  }
+  // Desahucio: la base es renta ANUAL — avisar si parece mensual
+  if(proc==='desahucio'&&!esIndet&&cuantia>0&&cuantia<600){
+    avisos.push(`La base del desahucio (C.51) es la renta ANUAL, no mensual. Si ${eur(cuantia)} es la renta mensual, la anual sería ${eur(cuantia*12)}.`);
+  }
+  // Cuantía muy elevada para verbal (ya cubierta arriba) — extra aviso para ordinario
+  if(proc==='ordinario'&&!esIndet&&cuantia>3000000){
+    avisos.push('Cuantía superior a 3.000.000 €. Para ese tramo la escala C.35 aplica al 0,5%. Verifica la cuantía.');
+  }
+  // Cambiario con cuantía 0
+  if(['cambiario_sin','cambiario_con'].includes(proc)&&cuantia<=0){
+    errores.push('Introduce la cantidad por la que se despachó ejecución en el juicio cambiario.');
+  }
+  return {errores,avisos};
+}
+
+function mostrarErrores(errores,avisos){
+  let html='';
+  for(const e of errores){
+    html+=`<div style="background:rgba(220,38,38,.08);border-left:3px solid #dc2626;border-radius:6px;padding:12px 16px;margin-bottom:8px;font-size:12px;color:#dc2626;line-height:1.6">❌ ${e}</div>`;
+  }
+  for(const a of avisos){
+    html+=`<div style="background:rgba(234,179,8,.08);border-left:3px solid #ca8a04;border-radius:6px;padding:12px 16px;margin-bottom:8px;font-size:12px;color:#92400e;line-height:1.6">⚠️ ${a}</div>`;
+  }
+  let caja=document.getElementById('validacion-box');
+  if(!caja){
+    caja=document.createElement('div');
+    caja.id='validacion-box';
+    document.querySelector('.btn-calc').insertAdjacentElement('afterend',caja);
+  }
+  caja.innerHTML=html;
+  if(html)caja.scrollIntoView({behavior:'smooth',block:'center'});
+  return errores.length===0;
+}
+
+function calcular(){
+  const proc=STATE.proc;
+  if(!proc){alert('Por favor, selecciona el tipo de procedimiento.');return;}
+  const p=PROCS[proc];
+  const tipoC=document.querySelector('input[name="f-tipo-cuantia"]:checked')?.value||'det';
+  const esIndet=tipoC==='indet'&&!p.fijo;
+  let cuantia=0;
+  let comp='normal';
+  if(esIndet){
+    cuantia=parseFloat(document.getElementById('f-cuantia-indet')?.value)||0;
+    comp=document.getElementById('f-comp-indet')?.value||'normal';
+  } else {
+    cuantia=parseFloat(document.getElementById('f-cuantia')?.value)||0;
+    comp=document.getElementById('f-comp')?.value||'normal';
+  }
+
+  // ── VALIDAR ──
+  const {errores,avisos}=validar(proc,cuantia,esIndet);
+  if(!mostrarErrores(errores,avisos))return; // hay errores bloqueantes
+
+  const igic=document.querySelector('input[name="f-igic"]:checked')?.value==='si';
+  const plural=document.getElementById('f-plural')?.value==='si';
+  const rows=[];
+  let base=0;
+  let desgloseEscala=null; // {bruto, desglose[]} para el PDF detallado
+
+  if(p.fijo){
+    base=p.fijo;
+    rows.push({lbl:'Honorarios orientativos (importe fijo ICATF)',val:eur(base),cls:'accent'});
+  } else if(proc==='verbal'){
+    const fase=document.getElementById('f-fase-v')?.value||'completo';
+    const pos=document.querySelector('input[name="f-pos-v"]:checked')?.value||'actor';
+    if(cuantia<=0){alert('Introduce la cuantía del procedimiento.');return;}
+    const d=e35d(cuantia); desgloseEscala=d;
+    base=d.total;
+    rows.push({lbl:`Escala C.35 sobre ${eur(cuantia)}`,val:eur(base)});
+    if(pos==='actor'){
+      const pct={completo:1,demanda:.5,allanamiento:.75}[fase]||1;
+      if(pct<1){rows.push({lbl:`Fase: ${fase==='demanda'?'solo demanda (50%)':'allanamiento (75%)'}`,val:eur(base*pct)});base*=pct;}
+    } else {
+      if(fase==='allanamiento'){rows.push({lbl:'Allanamiento del demandado (75%)',val:eur(base*.75)});base*=.75;}
+    }
+  } else if(proc==='ordinario'){
+    if(cuantia<=0){alert('Introduce la cuantía del procedimiento.');return;}
+    const fase=document.getElementById('f-fase-o')?.value||'completo';
+    const d=e35d(cuantia); desgloseEscala=d;
+    base=d.total;
+    rows.push({lbl:`Escala C.35 sobre ${eur(cuantia)}`,val:eur(base)});
+    const pct={completo:1,audiencia:.6,alegaciones:.5}[fase]||1;
+    if(pct<1){
+      const labels={audiencia:'Fase: alegaciones + audiencia previa (60%)',alegaciones:'Fase: solo alegaciones (50%)'};
+      rows.push({lbl:labels[fase],val:eur(base*pct)});base*=pct;
+    }
+  } else if(['ej_jud_sin','ej_prov_sin','ej_apremio'].includes(proc)){
+    if(cuantia<=0){alert('Introduce la cuantía.');return;}
+    const d=e36d(cuantia); desgloseEscala=d;
+    base=d.total*.5;
+    rows.push({lbl:`Escala C.36 sobre ${eur(cuantia)}`,val:eur(d.total)});
+    rows.push({lbl:'Porcentaje aplicado: 50%',val:eur(base),cls:'accent'});
+  } else if(['ej_jud_con','ej_no_din','precario_con','monitorio_dec','ph_det','ca_ord','lab_cant','lab_despido','incidente_con','cauc_con','division','ca_cas','casacion_civ'].includes(proc)){
+    if(cuantia<=0){alert('Introduce la cuantía.');return;}
+    const pcts={'ej_no_din':.3,'incidente_con':.75,'cauc_con':.75,'division':.5,'ca_abrev':.8,'ca_cas':.8,'casacion_civ':.8,'inf_proc':.75,'suplica_otro':.75,'conc_ave':.75};
+    const pct=pcts[proc]||1;
+    const d=e35d(cuantia); desgloseEscala=d;
+    base=d.total*pct;
+    rows.push({lbl:`Escala C.35 sobre ${eur(cuantia)}`,val:eur(d.total)});
+    if(pct<1)rows.push({lbl:`Porcentaje aplicado: ${Math.round(pct*100)}%`,val:eur(base),cls:'accent'});
+    else rows.push({lbl:'Aplicación escala C.35 completa',val:eur(base),cls:'accent'});
+  } else if(['ej_prov_con','cambiario_sin','ej_tit_sin','precario_sin','cauc_sin'].includes(proc)){
+    if(cuantia<=0){alert('Introduce la cuantía.');return;}
+    const pct2={'cauc_sin':.75,'ej_prov_con':1,'cambiario_sin':1,'ej_tit_sin':1,'precario_sin':1}[proc]||1;
+    base=e36(cuantia)*pct2;
+    rows.push({lbl:`Escala C.36 sobre ${eur(cuantia)}`,val:eur(e36(cuantia))});
+    if(pct2<1)rows.push({lbl:'Reducción aplicada: −25% (medidas cautelares)',val:eur(base),cls:'accent'});
+    else rows.push({lbl:'Aplicación escala C.36 completa',val:eur(base),cls:'accent'});
+  } else if(['cambiario_con','ej_dan_con','ej_dan_sin','ej_tit_con','hipot_con','ca_abrev'].includes(proc)){
+    if(cuantia<=0){alert('Introduce la cuantía.');return;}
+    const pcts2={'ej_dan_con':.2,'ej_dan_sin':.5,'ca_abrev':.8};
+    const pct2=pcts2[proc]||1;
+    base=e35(cuantia)*pct2;
+    rows.push({lbl:`Escala C.35 sobre ${eur(cuantia)}`,val:eur(e35(cuantia))});
+    if(pct2<1)rows.push({lbl:`Porcentaje aplicado: ${Math.round(pct2*100)}%`,val:eur(base),cls:'accent'});
+    else rows.push({lbl:'Aplicación escala C.35 completa',val:eur(base),cls:'accent'});
+  } else if(proc==='hipot_sin'){
+    if(cuantia<=0){alert('Introduce la cuantía.');return;}
+    base=e36(cuantia)*1.3;
+    rows.push({lbl:`Escala C.36 sobre ${eur(cuantia)}`,val:eur(e36(cuantia))});
+    rows.push({lbl:'Incremento hipotecario +30% (C.43)',val:eur(base),cls:'accent'});
+  } else if(['ape_mismo','ape_distinto','inf_proc','suplica_otro','conc_ave'].includes(proc)){
+    if(cuantia<=0){alert('Introduce la cuantía.');return;}
+    const pct={'ape_mismo':.5,'ape_distinto':.6,'inf_proc':.75,'suplica_otro':.75,'conc_ave':.75}[proc];
+    base=e35(cuantia)*pct;
+    rows.push({lbl:`Escala C.35 sobre ${eur(cuantia)}`,val:eur(e35(cuantia))});
+    rows.push({lbl:`Porcentaje aplicado: ${Math.round(pct*100)}%`,val:eur(base),cls:'accent'});
+    if(['ape_mismo','ape_distinto'].includes(proc)){
+      const fase=document.getElementById('f-ape-fase')?.value;
+      const prueba=document.getElementById('f-ape-prueba')?.value==='si';
+      if(prueba){rows.push({lbl:'Prueba en 2ª instancia +15%',val:eur(base*1.15)});base*=1.15;}
+      const desglose={'preparacion':[[20,'Preparación']],'interposicion':[[20,'Preparación'],[80,'Interposición']],'vista':[[20,'Preparación'],[55,'Interposición'],[25,'Vista oral']]}[fase];
+      if(desglose&&desglose.length>1){
+        rows.push({lbl:'Desglose por fases:',val:''});
+        for(const[pct2,name] of desglose){rows.push({lbl:`  · ${name} (${pct2}%)`,val:eur(base*pct2/100),muted:true});}
+      }
+    }
+  } else if(proc==='suplica_mismo'){
+    if(cuantia<=0){alert('Introduce los honorarios minutados en instancia.');return;}
+    base=cuantia*.5;
+    rows.push({lbl:`50% de los honorarios de instancia (${eur(cuantia)})`,val:eur(base),cls:'accent'});
+  } else if(proc==='ca_ape'){
+    if(cuantia<=0){alert('Introduce los honorarios de 1ª instancia.');return;}
+    base=cuantia*.7;
+    rows.push({lbl:`70% de honorarios de 1ª instancia (${eur(cuantia)})`,val:eur(base),cls:'accent'});
+  } else if(proc==='desahucio'){
+    if(cuantia<=0){alert('Introduce la renta anual.');return;}
+    base=e51(cuantia);
+    rows.push({lbl:`Escala C.51 sobre renta anual ${eur(cuantia)}`,val:eur(base),cls:'accent'});
+  } else if(proc==='concurso'){
+    if(cuantia<=0){alert('Introduce el pasivo del balance.');return;}
+    base=e63(cuantia);
+    rows.push({lbl:`Escala C.63 sobre pasivo ${eur(cuantia)}`,val:eur(base),cls:'accent'});
+  } else if(['casacion_civ','inf_proc'].includes(proc)){
+    if(cuantia<=0){alert('Introduce la cuantía del procedimiento.');return;}
+    const pct={'casacion_civ':.8,'inf_proc':.75}[proc];
+    base=e35(cuantia)*pct;
+    rows.push({lbl:`Escala C.35 sobre ${eur(cuantia)}`,val:eur(e35(cuantia))});
+    rows.push({lbl:`${Math.round(pct*100)}% (${proc==='casacion_civ'?'C.75':'C.74'})`,val:eur(base),cls:'accent'});
+  } else {
+    // Fallback para cualquier procedimiento no cubierto arriba
+    if(!p.fijo&&cuantia>0){
+      base=e35(cuantia);
+      rows.push({lbl:`Escala C.35 sobre ${eur(cuantia)}`,val:eur(base),cls:'accent'});
+    }
+  }
+
+  // RECONVENCIÓN
+  if(['verbal','ordinario'].includes(proc)){
+    const rc=document.getElementById('f-rc')?.value||'no';
+    if(rc!=='no'){
+      const rcc=parseFloat(document.getElementById('f-rc-c')?.value)||0;
+      if(rcc>0&&rc==='distinta'){
+        const rcBase=e35(rcc);
+        rows.push({lbl:`Reconvención sobre cuantía distinta ${eur(rcc)}`,val:eur(rcBase)});
+        base+=rcBase;
+      } else if(rcc>0&&rc==='misma'){
+        const rcBase=e35(cuantia+rcc)-e35(cuantia);
+        rows.push({lbl:`Incremento por reconvención misma cuestión ${eur(rcc)}`,val:eur(rcBase)});
+        base+=rcBase;
+      }
+    }
+  }
+
+  // COMPLEJIDAD
+  if(comp==='simple'&&!p.fijo){base*=.7;rows.push({lbl:'Reducción asunto sencillo −30%',val:eur(base)});}
+  if(comp==='compleja'&&!p.fijo){base*=1.3;rows.push({lbl:'Incremento asunto complejo +30%',val:eur(base)});}
+
+  // PLURALIDAD
+  if(plural&&!p.fijo){base*=1.3;rows.push({lbl:'Pluralidad de clientes +30% (Disp.8ª ICATF)',val:eur(base)});}
+
+  // LÍMITE TERCIO (verbal y ordinario)
+  if(['verbal','ordinario'].includes(proc)&&cuantia>0){
+    const lim=cuantia/3;
+    if(base>lim){
+      rows.push({lbl:`⚠️ Límite art. 394.3 LEC (1/3 de ${eur(cuantia)}) — se aplica la reducción`,val:eur(lim),cls:'warn-row'});
+      base=lim;
+    }
+  }
+
+  // IGIC
+  let igicAmt=0;
+  if(igic){igicAmt=base*.07;rows.push({lbl:'IGIC 7% sobre honorarios del letrado',val:eur(igicAmt)});}
+
+  // ART 241
+  const art241Total=getArt241Total();
+  if(art241Total>0)rows.push({lbl:'Partidas art. 241 LEC',val:eur(art241Total)});
+
+  if(esIndet){
+    rows.unshift({lbl:'⚠️ Procedimiento de cuantía indeterminada — importe orientativo ICATF',val:'',cls:'accent'});
+  }
+
+  const total=base+igicAmt+art241Total;
+  STATE={proc,cuantia,esIndet,rows,honorarios:base,igic:igicAmt,art241:art241Total,total,desgloseEscala};
+
+  mostrarResultado(rows,base,igicAmt,art241Total,total,igic);
+}
+
+function mostrarResultado(rows,hon,igicAmt,art241,total,conIgic){
+  const proc=document.getElementById('proc-sel').options[document.getElementById('proc-sel').selectedIndex].text;
+  document.getElementById('r-title').textContent='Tasación de costas';
+  document.getElementById('r-proc').textContent=proc;
+  document.getElementById('r-igic-lbl').textContent=conIgic?'Honorarios letrado + IGIC + Art. 241 LEC':'Honorarios letrado + Art. 241 LEC';
+  let html='<div class="r-sec">Desglose del cálculo</div>';
+  for(const r of rows){
+    const cls=r.cls?` ${r.cls}`:'';
+    const mc=r.muted?' muted':'';
+    html+=`<div class="rrow${cls}${mc}"><div class="rrow-lbl">${r.lbl}</div><div class="rrow-val">${r.val||''}</div></div>`;
+  }
+  html+=`<div class="r-sec">Resumen</div>`;
+  html+=`<div class="rrow accent"><div class="rrow-lbl">Honorarios del letrado<small>Escala ICATF con actualización +15%</small></div><div class="rrow-val">${eur(hon)}</div></div>`;
+  if(igicAmt>0)html+=`<div class="rrow"><div class="rrow-lbl">IGIC 7%</div><div class="rrow-val">${eur(igicAmt)}</div></div>`;
+  if(art241>0)html+=`<div class="rrow"><div class="rrow-lbl">Partidas art. 241 LEC</div><div class="rrow-val">${eur(art241)}</div></div>`;
+  document.getElementById('rb').innerHTML=html;
+  document.getElementById('r-total').textContent=eur(total);
+  const res=document.getElementById('result');
+  res.style.display='block';
+  res.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ════════════════════════════════════════════════════════════
+// EXPORTAR RESULTADO PDF — ventana limpia, editable, con desglose detallado
+// ════════════════════════════════════════════════════════════
+function exportarResultadoPDF(){
+  const proc=document.getElementById('proc-sel').options[document.getElementById('proc-sel').selectedIndex].text||'';
+  const juzgado=document.getElementById('f-juzgado')?.value||'';
+  const autos=document.getElementById('f-autos')?.value||'';
+  const fecha=document.getElementById('f-fecha')?.value||'';
+  const fechaFmt=fecha?new Date(fecha).toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'}):'';
+  const despacho=USER.despacho||'';
+  const letrado=USER.nombre||'';
+  const coleg=USER.colegiada||'';
+  const hoy=new Date().toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'});
+
+  // ── Desglose de la escala ──
+  let desgloseHTML='';
+  if(STATE.desgloseEscala&&STATE.desgloseEscala.desglose.length){
+    const d=STATE.desgloseEscala;
+    desgloseHTML+=`<table class="det"><thead><tr><th style="text-align:left">Tramo</th><th style="text-align:right">Base tramo</th><th style="text-align:right">Porcentaje</th><th style="text-align:right">Parcial</th></tr></thead><tbody>`;
+    for(const t of d.desglose){
+      desgloseHTML+=`<tr><td>${t.lbl}</td><td style="text-align:right">${eur(t.base)}</td><td style="text-align:right">${((t.parcial/t.base)*100).toFixed(1)}%</td><td style="text-align:right">${eur(t.parcial)}</td></tr>`;
+    }
+    desgloseHTML+=`</tbody></table>`;
+    const bruto=d.bruto;
+    const tras5=bruto*1.05;
+    const tras15=tras5*1.15;
+    desgloseHTML+=`
+      <div class="subtotal-block">
+        <div class="sb-row"><span>Subtotal escala bruta</span><span>${eur(bruto)}</span></div>
+        <div class="sb-row blue"><span>+ Incremento previsto en Criterios ICATF (+5%)</span><span>+${eur(bruto*0.05)}</span></div>
+        <div class="sb-row"><span>= Subtotal tras baremo</span><span>${eur(tras5)}</span></div>
+        <div class="sb-row blue"><span>+ Actualización colegial ICATF (+15%)</span><span>+${eur(tras5*0.15)}</span></div>
+        <div class="sb-row total"><span>= Total honorarios letrado/a</span><span>${eur(tras15)}</span></div>
+      </div>`;
+  } else {
+    // Para procedimientos de importe fijo u otros sin escala
+    desgloseHTML+=`<p style="font-size:12px;color:#64748b;margin:0 0 12px">Importe fijo orientativo conforme a Criterios ICATF con actualización colegial +15%.</p>`;
+  }
+
+  // ── Partidas adicionales ──
+  let partidas='';
+  if(STATE.igic>0){
+    partidas+=`<div class="sb-row"><span>+ IGIC 7% sobre honorarios letrado/a</span><span>+${eur(STATE.igic)}</span></div>`;
+  }
+  if(STATE.art241>0){
+    partidas+=`<div class="sb-row"><span>+ Otras partidas art. 241 LEC</span><span>+${eur(STATE.art241)}</span></div>`;
+  }
+  if(partidas){
+    partidas=`<div class="subtotal-block" style="margin-top:8px">${partidas}</div>`;
+  }
+
+  const w=window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
+<title>Minuta de honorarios · ${autos||'ICATF'}</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Helvetica Neue',Arial,sans-serif;max-width:760px;margin:0 auto;padding:48px 40px;color:#1e293b;font-size:13px}
+  .editable-note{background:#fef9c3;border:1px dashed #ca8a04;border-radius:6px;padding:10px 14px;font-size:11px;color:#92400e;margin-bottom:24px;display:flex;align-items:center;gap:8px}
+  [contenteditable]{outline:none;border-bottom:1px dashed #cbd5e1;cursor:text}
+  [contenteditable]:hover,[contenteditable]:focus{background:#f0f9ff;border-bottom-color:#2563eb}
+  h1{font-family:Georgia,serif;font-size:24px;color:#1a2c5b;font-weight:400;margin-bottom:4px}
+  h2{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:#64748b;font-weight:500;margin-bottom:28px;padding-bottom:14px;border-bottom:2px solid #2563eb}
+  .meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:24px}
+  .meta-item{background:#f5f7fa;padding:10px 14px;border-radius:6px}
+  .meta-item label{display:block;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#94a3b8;margin-bottom:3px}
+  .meta-item span{font-size:13px;font-weight:500;color:#1e293b}
+  h3{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#2563eb;font-weight:700;margin:20px 0 10px;padding-bottom:6px;border-bottom:1px solid #e2e8f0}
+  table.det{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px}
+  table.det th{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#94a3b8;padding:6px 8px;border-bottom:2px solid #e2e8f0;font-weight:600}
+  table.det td{padding:7px 8px;border-bottom:1px solid #f1f5f9;color:#334155}
+  table.det tr:last-child td{border-bottom:none}
+  .subtotal-block{background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:12px 16px;margin-top:12px}
+  .sb-row{display:flex;justify-content:space-between;font-size:13px;color:#475569;padding:5px 0;border-bottom:1px solid #f1f5f9}
+  .sb-row:last-child{border-bottom:none}
+  .sb-row.blue{color:#2563eb;font-weight:500}
+  .sb-row.total{color:#1a2c5b;font-weight:700;font-size:15px;padding-top:10px;margin-top:4px;border-top:2px solid #2563eb;border-bottom:none}
+  .total-box{background:#2563eb;color:#fff;padding:18px 24px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;margin-top:20px}
+  .total-box span:first-child{font-size:10px;letter-spacing:.18em;text-transform:uppercase;opacity:.8}
+  .total-box span:last-child{font-size:28px;font-weight:700;font-family:Georgia,serif}
+  .legal-note{margin-top:28px;padding-top:16px;border-top:1px solid #e2e8f0;font-size:10px;color:#94a3b8;line-height:1.7}
+  .footer{margin-top:20px;font-size:10px;color:#94a3b8;text-align:right}
+  .print-btn{background:#2563eb;color:#fff;border:none;padding:10px 20px;border-radius:6px;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;margin-right:8px}
+  .print-btn:hover{background:#1a2c5b}
+  .btn-bar{text-align:right;margin-bottom:24px}
+  @media print{
+    .editable-note,.btn-bar{display:none!important}
+    body{padding:24px}
+    [contenteditable]{border-bottom:none!important;background:transparent!important}
+  }
+</style></head><body>
+<div class="btn-bar">
+  <button class="print-btn" onclick="window.print()">🖨 Imprimir / Guardar PDF</button>
+</div>
+<div class="editable-note">
+  ✏️ <strong>Documento editable:</strong> Haz clic en cualquier campo de texto para modificarlo antes de imprimir.
+</div>
+
+<h1 contenteditable="true">Minuta de Honorarios</h1>
+<h2>Criterios Orientadores ICATF · Actualización colegial +15% · Arts. 241, 394 y 398 LEC</h2>
+
+<div class="meta-grid">
+  <div class="meta-item"><label>Tipo de procedimiento</label><span contenteditable="true">${proc}</span></div>
+  <div class="meta-item"><label>Número de autos</label><span contenteditable="true">${autos||'—'}</span></div>
+  ${juzgado?`<div class="meta-item"><label>Órgano judicial</label><span contenteditable="true">${juzgado}</span></div>`:''}
+  ${fechaFmt?`<div class="meta-item"><label>Fecha de resolución</label><span contenteditable="true">${fechaFmt}</span></div>`:''}
+  ${STATE.cuantia>0?`<div class="meta-item"><label>Cuantía del procedimiento</label><span contenteditable="true">${eur(STATE.cuantia)}</span></div>`:''}
+  ${STATE.esIndet?`<div class="meta-item" style="background:#fef9c3"><label>⚠️ Cuantía</label><span>Indeterminada — importe orientativo ICATF</span></div>`:''}
+</div>
+
+<h3>Cálculo de honorarios del letrado/a</h3>
+${desgloseHTML}
+
+${partidas?`<h3>Otras partidas (Art. 241 LEC)</h3>${partidas}`:''}
+
+<div class="total-box">
+  <span>Total costas judiciales</span>
+  <span contenteditable="true">${eur(STATE.total)}</span>
+</div>
+
+<div class="legal-note" contenteditable="true">
+Los honorarios han sido calculados conforme a los Criterios Orientadores del Ilustre Colegio de Abogados de Santa Cruz de Tenerife (ICATF), vigentes a efectos de tasación de costas y jura de cuentas (Acuerdo Junta de Gobierno 18/03/2010). Se aplica el incremento colegial del 15% acordado por la Junta de Gobierno del Colegio, además del incremento del 5% del baremo ya incorporado en la escala base (art. 13 Disp. Generales ICATF). La presente minuta tiene carácter orientador conforme a la Disposición General 2ª ICATF.
+</div>
+
+<div class="footer">
+  ${despacho?`<strong>${despacho}</strong> ·`:''} ${letrado}${coleg?` · Col. Nº ${coleg} · ICATF`:''}${letrado?' ·':''} ${hoy}
+</div>
+</body></html>`);
+  w.document.close();
+  w.focus();
+}
+
+// ════════════════════════════════════════════════════════════
+// TASACIÓN DE COSTAS — MODAL
+// ════════════════════════════════════════════════════════════
+function abrirTasacion(){
+  const juzg=document.getElementById('f-juzgado')?.value||'';
+  const autos=document.getElementById('f-autos')?.value||'';
+  const fecha=document.getElementById('f-fecha')?.value||'';
+  const cli=document.getElementById('f-cliente')?.value||'';
+  const cont=document.getElementById('f-contraria')?.value||'';
+  document.getElementById('tas-juzgado').value=juzg;
+  document.getElementById('tas-autos').value=autos;
+  document.getElementById('tas-fecha').value=fecha;
+  document.getElementById('tas-letrado').value=USER.nombre||'';
+  document.getElementById('tas-colegiada').value=USER.colegiada||'';
+  document.getElementById('tas-cliente').value=cli;
+  document.getElementById('tas-contraria').value=cont;
+  document.getElementById('tas-procurador').value='';
+  document.getElementById('tasacion-overlay').classList.add('visible');
+  generarTasacion();
+}
+function cerrarTasacion(){
+  document.getElementById('tasacion-overlay').classList.remove('visible');
+}
+
+function generarTasacion(){
+  const juzg=document.getElementById('tas-juzgado').value||'[TRIBUNAL]';
+  const autos=document.getElementById('tas-autos').value||'[NÚM. AUTOS]';
+  const letrado=document.getElementById('tas-letrado').value||USER.nombre||'[LETRADO/A]';
+  const coleg=document.getElementById('tas-colegiada').value||USER.colegiada||'[NÚM. COLEGIACIÓN]';
+  const procurador=document.getElementById('tas-procurador').value||'';
+  const cliente=document.getElementById('tas-cliente').value||'[LA PARTE]';
+  const contraria=document.getElementById('tas-contraria').value||'';
+  const resolucion=document.getElementById('tas-resolucion').value||'sentencia';
+  const fechaRaw=document.getElementById('tas-fecha').value||'';
+  const localidad=document.getElementById('tas-localidad').value||'Santa Cruz de Tenerife';
+  const despacho=USER.despacho||'[Despacho]';
+
+  // Fecha formateada en texto
+  let fechaTexto='[FECHA]';
+  if(fechaRaw){
+    const d=new Date(fechaRaw);
+    const meses=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+    fechaTexto=`${String(d.getUTCDate()).padStart(2,'0')} de ${meses[d.getUTCMonth()]} de ${d.getUTCFullYear()}`;
+  }
+
+  // Tipo de procedimiento para el encabezado
+  const procNombreCompleto=document.getElementById('proc-sel').options[document.getElementById('proc-sel').selectedIndex].text||'[PROCEDIMIENTO]';
+  // Simplificar nombre del procedimiento (quitar el código de criterio)
+  const procNombre=procNombreCompleto.replace(/\s*\(C\.\d+.*?\)\s*/g,'').replace(/\s*·.*$/,'').trim();
+
+  // Bloque de presentación: con procurador o sin él
+  let presentacion='';
+  if(procurador){
+    presentacion=`${procurador.toUpperCase()}, Procurador/a de los Tribunales, en nombre y representación de ${cliente.toUpperCase()}, según tengo debidamente acreditado en los autos del ${procNombre.toUpperCase()} número ${autos}, ante el ${juzg} comparezco y, como mejor y más procedente en derecho sea,`;
+  } else {
+    presentacion=`${letrado.toUpperCase()}, Letrado/a Col. Nº ${coleg} del Ilustre Colegio de Abogados de Tenerife, en nombre y representación de ${cliente.toUpperCase()}, en los autos del ${procNombre.toUpperCase()} número ${autos}, ante el ${juzg} comparezco y, como mejor y más procedente en derecho sea,`;
+  }
+
+  // Documentos que se acompañan
+  const docLetrado=`minuta de la Letrada/o directora/or de esta parte como **DOCUMENTO número UNO**`;
+  const docProcurador=procurador?`, y cuenta de derechos y adelantos del Procurador/a como **DOCUMENTO número DOS**`:'';
+
+  const texto=
+`${presentacion}
+
+DIGO:
+
+Que interesa a esta parte se practique por el Letrado/a de la Administración de Justicia, la TASACIÓN DE COSTAS, según lo establecido en los artículos 241 y siguientes de la Ley de Enjuiciamiento Civil, a cuyo fin acompaño ${docLetrado}${docProcurador}.
+
+En su virtud,
+
+SUPLICO AL JUZGADO Que teniendo por admitido este escrito, se sirva admitirlo y en su virtud, se practique por el Sr/a. Letrado/a de la Administración de Justicia la tasación de costas. Es de justicia que respetuosamente intereso.
+
+En ${localidad}, a ${fechaTexto}.`;
+
+  document.getElementById('tasacion-preview').textContent=texto;
+}
+
+function imprimirTasacion(){
+  const contenido=document.getElementById('tasacion-preview').textContent;
+  const w=window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Tasación de costas</title>
+  <style>body{font-family:'Courier New',monospace;font-size:12px;line-height:1.8;padding:40px;max-width:800px;margin:0 auto;color:#1e293b;}h1{font-size:14px;}</style></head>
+  <body><pre style="white-space:pre-wrap;font-family:inherit">${contenido}</pre></body></html>`);
+  w.document.close();
+  w.focus();
+  setTimeout(()=>w.print(),500);
+}
+
+// ════════════════════════════════════════════════════════════
+// RESET
+// ════════════════════════════════════════════════════════════
+function resetCalc(){
+  document.getElementById('proc-sel').value='';
+  document.getElementById('proc-info').style.display='none';
+  document.getElementById('form-main').style.display='none';
+  document.getElementById('result').style.display='none';
+  STATE={proc:'',cuantia:0,rows:[],honorarios:0,igic:0,art241:0,total:0};
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ════════════════════════════════════════════════════════════
+// FACTURA DE HONORARIOS
+// ════════════════════════════════════════════════════════════
+function abrirFactura(){
+  const hoy=new Date().toISOString().split('T')[0];
+  document.getElementById('fac-fecha').value=hoy;
+  const proc=document.getElementById('proc-sel').options[document.getElementById('proc-sel').selectedIndex].text||'';
+  const autos=document.getElementById('f-autos')?.value||'';
+  document.getElementById('fac-concepto').value=`Honorarios profesionales — ${proc}`;
+  document.getElementById('fac-ref').value=autos?`Autos ${autos}`:'';
+  document.getElementById('fac-base').value=STATE.honorarios?Math.round(STATE.honorarios*100)/100:'';
+  calcFactura();
+  document.getElementById('factura-overlay').style.display='flex';
+}
+
+function calcFactura(){
+  const base=parseFloat(document.getElementById('fac-base')?.value)||0;
+  const igicPct=parseFloat(document.getElementById('fac-igic')?.value)||0;
+  const irpfPct=parseFloat(document.getElementById('fac-irpf')?.value)||0;
+  const igicAmt=base*igicPct/100;
+  const irpfAmt=base*irpfPct/100;
+  const total=base+igicAmt-irpfAmt;
+  document.getElementById('fac-r-base').textContent=eur(base);
+  document.getElementById('fac-r-igic-lbl').textContent=`IGIC (${igicPct}%)`;
+  document.getElementById('fac-r-igic').textContent=eur(igicAmt);
+  document.getElementById('fac-r-irpf-lbl').textContent=`Retención IRPF (${irpfPct}%)`;
+  document.getElementById('fac-r-irpf').textContent=`− ${eur(irpfAmt)}`;
+  document.getElementById('fac-r-total').textContent=eur(total);
+}
+
+function generarFactura(){
+  const num=document.getElementById('fac-num').value||'[NÚM. FACTURA]';
+  const fechaRaw=document.getElementById('fac-fecha').value||'';
+  const fechaFmt=fechaRaw?new Date(fechaRaw).toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'}):'[FECHA]';
+  const cliente=document.getElementById('fac-cliente').value||'[CLIENTE]';
+  const nif=document.getElementById('fac-nif').value||'';
+  const concepto=document.getElementById('fac-concepto').value||'Honorarios profesionales';
+  const ref=document.getElementById('fac-ref').value||'';
+  const base=parseFloat(document.getElementById('fac-base')?.value)||0;
+  const igicPct=parseFloat(document.getElementById('fac-igic')?.value)||0;
+  const irpfPct=parseFloat(document.getElementById('fac-irpf')?.value)||0;
+  const igicAmt=base*igicPct/100;
+  const irpfAmt=base*irpfPct/100;
+  const total=base+igicAmt-irpfAmt;
+  const despacho=USER.despacho||'[Despacho]';
+  const letrado=USER.nombre||'';
+  const coleg=USER.colegiada||'';
+  const email=USER.email||'';
+
+  const texto=
+`================================================================================
+${despacho.toUpperCase()}
+${letrado} · Letrada/o · Col. Nº ${coleg} ICATF
+Santa Cruz de Tenerife
+Tel: ${email||'[teléfono]'}
+================================================================================
+
+FACTURA Nº ${num}
+Fecha: ${fechaFmt}
+
+DATOS DEL CLIENTE:
+  ${cliente}${nif?`\n  NIF/CIF: ${nif}`:''}
+
+CONCEPTO:
+  ${concepto}${ref?`\n  Referencia: ${ref}`:''}
+
+────────────────────────────────────────────────────────────────────────────────
+  Base imponible (honorarios profesionales)     ${eur(base).padStart(14)}
+  IGIC ${igicPct}%                                          ${eur(igicAmt).padStart(14)}
+  Retención IRPF ${irpfPct}%                               ${('− '+eur(irpfAmt)).padStart(14)}
+────────────────────────────────────────────────────────────────────────────────
+  TOTAL A PAGAR                                 ${eur(total).padStart(14)}
+================================================================================
+
+Forma de pago: Transferencia bancaria
+IBAN: ES__ ____ ____ ____ ____ ____
+
+Esta factura ha sido emitida conforme a lo establecido en el Real Decreto 1619/2012,
+de 30 de noviembre, por el que se aprueba el Reglamento por el que se regulan las
+obligaciones de facturación, y conforme al régimen especial del IGIC canario.
+
+${USER.despacho||'[Despacho]'} · ${new Date().toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'})}`;
+
+  const preview=document.getElementById('factura-preview');
+  preview.textContent=texto;
+  preview.style.display='block';
+}
+
+function imprimirFactura(){
+  const contenido=document.getElementById('factura-preview').textContent;
+  if(!contenido.trim()){generarFactura();}
+  const c=document.getElementById('factura-preview').textContent;
+  const w=window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Factura</title>
+  <style>body{font-family:'Courier New',monospace;font-size:12px;line-height:1.8;padding:40px;max-width:760px;margin:0 auto;color:#1e293b;}@media print{body{padding:20px}}</style></head>
+  <body><pre style="white-space:pre-wrap;font-family:inherit">${c}</pre></body></html>`);
+  w.document.close();w.focus();setTimeout(()=>w.print(),500);
+}
+
+</script>
+</body>
+</html>
