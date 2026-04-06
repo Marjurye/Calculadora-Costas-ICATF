@@ -293,8 +293,8 @@ textarea.sel{resize:vertical;min-height:80px;}
   <div class="proc-card">
     <h3>Selecciona el tipo de procedimiento</h3>
     <p>La calculadora aplicará automáticamente el criterio ICATF correspondiente (C.35, C.36 u otros) con los porcentajes y escalas correctas.</p>
-    <div class="free-badge-bar">
-      ✅ <strong>Gratis:</strong> Juicio Verbal y Juicio Ordinario — resultado en pantalla incluido sin coste.
+    <div class="free-badge-bar" id="free-badge-bar">
+      ✅ <strong>Prueba gratuita:</strong> Tienes <strong>2 cálculos completos gratis</strong> — con PDF, escrito de tasación y factura incluidos.
     </div>
     <select class="proc-select" id="proc-sel" onchange="onProcChange()">
       <option value="">— Selecciona el tipo de procedimiento —</option>
@@ -390,10 +390,6 @@ textarea.sel{resize:vertical;min-height:80px;}
         <option value="conc_ave">Acto de conciliación · con avenencia (75% pleito evitado)</option>
       </optgroup>
     </select>
-    <div class="premium-badge-bar" onclick="mostrarPaywall('selector')" id="premium-unlock-bar">
-      🔒 <strong>58 procedimientos más</strong> — Ejecuciones, Familia, Laboral, Penal, Concursal y más · Desbloquea con suscripción mensual
-      <span style="margin-left:auto;background:var(--blue);color:#fff;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:4px 10px;border-radius:6px;white-space:nowrap">Ver planes →</span>
-    </div>
     <div class="proc-info" id="proc-info"><p id="proc-info-text"></p></div>
   </div>
 
@@ -650,27 +646,27 @@ textarea.sel{resize:vertical;min-height:80px;}
     <div class="pw-header">
       <div class="pw-badge">⚖️ Calculadora Costas ICATF</div>
       <h2>Acceso profesional completo</h2>
-      <p>Sin suscripción · Sin permanencia · Cancela cuando quieras</p>
+      <p id="pw-contador-msg">Has utilizado tus 2 cálculos gratuitos.</p>
     </div>
     <div class="pw-body">
       <div class="pw-precio">
         <div class="importe">3,99 €</div>
-        <div class="periodo">al mes · IVA/IGIC no incluido</div>
+        <div class="periodo">al mes · IGIC no incluido · Sin permanencia</div>
       </div>
       <ul class="pw-features">
+        <li><span class="ic">✓</span><div><strong>Cálculos ilimitados</strong> — todos los procedimientos sin restricciones</div></li>
         <li><span class="ic">✓</span><div><strong>60 tipos de procedimiento</strong> — Ejecuciones, Familia, Laboral, Penal, Contencioso-administrativo, Concursal y más</div></li>
         <li><span class="ic">✓</span><div><strong>Minuta PDF editable</strong> con desglose completo tramo a tramo de la escala ICATF</div></li>
         <li><span class="ic">✓</span><div><strong>Escrito de tasación de costas</strong> listo para presentar — con procurador o letrado</div></li>
         <li><span class="ic">✓</span><div><strong>Factura de honorarios</strong> con IGIC e IRPF configurable</div></li>
-        <li><span class="ic">✓</span><div><strong>Validaciones automáticas</strong> — límite del tercio, cuantía verbal/ordinario, errores de procedimiento</div></li>
-        <li><span class="ic">✓</span><div><strong>Cuantía indeterminada</strong> con importes orientativos por tipo de procedimiento</div></li>
-        <li><span class="ic ic-lock">🆓</span><div>Juicio Verbal y Ordinario siempre <strong>gratuitos</strong></div></li>
+        <li><span class="ic">✓</span><div><strong>Validaciones automáticas</strong> — límite del tercio, cuantía verbal/ordinario, errores procesales</div></li>
+        <li><span class="ic">✓</span><div><strong>Cuantía indeterminada</strong> con importes orientativos ICATF</div></li>
       </ul>
       <a href="https://buy.stripe.com/bJe3cv3WC0454C69UMbEA00" target="_blank" class="pw-cta" id="pw-stripe-btn">
         Suscribirme — 3,99 €/mes →
       </a>
       <button class="pw-gratis-btn" onclick="cerrarPaywall()">
-        Continuar con la versión gratuita (solo Verbal y Ordinario)
+        Volver
       </button>
     </div>
   </div>
@@ -838,43 +834,69 @@ textarea.sel{resize:vertical;min-height:80px;}
 // ════════════════════════════════════════════════════════════
 // CONFIGURACIÓN STRIPE — reemplaza esta URL con tu enlace real
 // ════════════════════════════════════════════════════════════
-const STRIPE_URL = 'https://buy.stripe.com/bJe3cv3WC0454C69UMbEA00'; // ej: https://buy.stripe.com/xxxxx
+const STRIPE_URL = 'https://buy.stripe.com/bJe3cv3WC0454C69UMbEA00';
 
-// Procedimientos gratuitos
-const PROCS_GRATIS = ['verbal', 'ordinario'];
+// Cálculos gratuitos permitidos antes de pedir suscripción
+const MAX_CALCULOS_GRATIS = 2;
 
-function esPremium(proc){
-  return proc && !PROCS_GRATIS.includes(proc);
+function actualizarBadgeContador(){
+  const usados = getCalculosUsados();
+  const restantes = Math.max(0, MAX_CALCULOS_GRATIS - usados);
+  const bar = document.getElementById('free-badge-bar');
+  if(!bar) return;
+  if(esSuscriptor()){
+    bar.innerHTML = '✅ <strong>Suscriptor activo</strong> — Acceso completo a todos los procedimientos y funciones.';
+    bar.style.background = 'var(--green-bg)';
+    return;
+  }
+  if(restantes > 0){
+    bar.innerHTML = `✅ <strong>Prueba gratuita:</strong> Te quedan <strong>${restantes} cálculo${restantes===1?'':'s'}</strong> completo${restantes===1?'':'s'} gratis — con PDF, escrito y factura incluidos.`;
+  } else {
+    bar.innerHTML = `🔒 <strong>Has agotado los cálculos gratuitos.</strong> Suscríbete por 3,99 €/mes para seguir usando la calculadora. <span onclick="mostrarPaywall('badge')" style="cursor:pointer;text-decoration:underline;font-weight:700">Ver planes →</span>`;
+    bar.style.background = 'rgba(220,38,38,.07)';
+    bar.style.borderColor = 'rgba(220,38,38,.2)';
+    bar.style.color = 'var(--warn)';
+  }
 }
 
-function esSuscriptor(){
-  // Por ahora: comprueba si hay un flag en localStorage
-  // Cuando conectes Stripe Webhook, actualizarás esto con verificación real
-  return localStorage.getItem('calc-suscriptor') === 'activo';
+
+function getCalculosUsados(){
+  return parseInt(localStorage.getItem('calc-contador') || '0');
+}
+
+function incrementarContador(){
+  const n = getCalculosUsados() + 1;
+  localStorage.setItem('calc-contador', n.toString());
+  return n;
+}
+
+function calculos_restantes(){
+  return Math.max(0, MAX_CALCULOS_GRATIS - getCalculosUsados());
+}
+
+function necesitaSuscripcion(){
+  return !esSuscriptor() && getCalculosUsados() >= MAX_CALCULOS_GRATIS;
 }
 
 function mostrarPaywall(origen){
-  // Actualizar el enlace de Stripe por si acaso
   document.getElementById('pw-stripe-btn').href = STRIPE_URL;
+  // Actualizar el contador en el modal
+  const usados = getCalculosUsados();
+  const el = document.getElementById('pw-contador-msg');
+  if(el){
+    el.textContent = usados >= MAX_CALCULOS_GRATIS
+      ? `Has utilizado tus ${MAX_CALCULOS_GRATIS} cálculos gratuitos.`
+      : ``;
+  }
   document.getElementById('paywall-overlay').classList.add('visible');
 }
 
 function cerrarPaywall(){
   document.getElementById('paywall-overlay').classList.remove('visible');
-  // Si venía de un procedimiento premium, resetear el selector
-  const proc = STATE.proc;
-  if(esPremium(proc)){
-    document.getElementById('proc-sel').value = '';
-    document.getElementById('proc-info').style.display = 'none';
-    document.getElementById('form-main').style.display = 'none';
-    document.getElementById('result').style.display = 'none';
-    STATE.proc = '';
-  }
 }
 
-// Interceptar acciones premium en el resultado
 function accionPremium(accion){
-  if(!esSuscriptor()){
+  if(necesitaSuscripcion()){
     mostrarPaywall(accion);
     return;
   }
@@ -1066,16 +1088,6 @@ let STATE = {proc:'', cuantia:0, rows:[], honorarios:0, igic:0, art241:0, total:
 function onProcChange(){
   const v=document.getElementById('proc-sel').value;
   STATE.proc=v;
-
-  // ── Bloquear si es premium y no es suscriptor ──
-  if(esPremium(v) && !esSuscriptor()){
-    mostrarPaywall('selector');
-    document.getElementById('proc-sel').value='';
-    STATE.proc='';
-    document.getElementById('proc-info').style.display='none';
-    document.getElementById('form-main').style.display='none';
-    return;
-  }
   const info=document.getElementById('proc-info');
   const infoText=document.getElementById('proc-info-text');
   if(!v){info.style.display='none';document.getElementById('form-main').style.display='none';return;}
@@ -1475,6 +1487,18 @@ function calcular(){
   const total=base+igicAmt+art241Total;
   STATE={proc,cuantia,esIndet,rows,honorarios:base,igic:igicAmt,art241:art241Total,total,desgloseEscala};
 
+  // ── Contador de cálculos ──
+  if(!esSuscriptor()){
+    const usados = incrementarContador();
+    const restantes = MAX_CALCULOS_GRATIS - usados;
+    // Actualizar badge del contador en la UI
+    actualizarBadgeContador();
+    if(usados > MAX_CALCULOS_GRATIS){
+      mostrarPaywall('calculo');
+      return;
+    }
+  }
+
   mostrarResultado(rows,base,igicAmt,art241Total,total,igic);
 }
 
@@ -1831,6 +1855,8 @@ function imprimirFactura(){
   w.document.close();w.focus();setTimeout(()=>w.print(),500);
 }
 
+// ── INIT ──
+actualizarBadgeContador();
 </script>
 </body>
 </html>
