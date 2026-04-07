@@ -78,7 +78,7 @@ header{border-bottom:1px solid var(--grey-line);padding:16px 48px;display:flex;a
 .proc-premium-label{display:inline-block;background:var(--blue-dim);color:var(--blue);font-size:8px;font-weight:700;letter-spacing:.1em;padding:1px 6px;border-radius:3px;margin-left:4px;text-transform:uppercase;vertical-align:middle;}
 
 /* ── WRAP ── */
-.wrap{max-width:1020px;margin:0 auto;padding:36px 32px 96px;}
+.wrap{max-width:780px;margin:0 auto;padding:32px 24px 80px;}
 
 /* ── PAGE TITLE ── */
 .page-title{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:400;color:var(--navy);line-height:1.15;}
@@ -835,9 +835,43 @@ textarea.sel{resize:vertical;min-height:80px;}
 // CONFIGURACIÓN STRIPE — reemplaza esta URL con tu enlace real
 // ════════════════════════════════════════════════════════════
 const STRIPE_URL = 'https://buy.stripe.com/bJe3cv3WC0454C69UMbEA00';
-
-// Cálculos gratuitos permitidos antes de pedir suscripción
 const MAX_CALCULOS_GRATIS = 2;
+
+function esSuscriptor(){
+  return localStorage.getItem('calc-suscriptor') === 'activo';
+}
+function getCalculosUsados(){
+  return parseInt(localStorage.getItem('calc-contador') || '0');
+}
+function incrementarContador(){
+  const n = getCalculosUsados() + 1;
+  localStorage.setItem('calc-contador', n.toString());
+  return n;
+}
+function necesitaSuscripcion(){
+  return !esSuscriptor() && getCalculosUsados() >= MAX_CALCULOS_GRATIS;
+}
+function mostrarPaywall(origen){
+  const btn=document.getElementById('pw-stripe-btn');
+  if(btn) btn.href = STRIPE_URL;
+  const el=document.getElementById('pw-contador-msg');
+  if(el){
+    const usados=getCalculosUsados();
+    el.textContent = usados >= MAX_CALCULOS_GRATIS
+      ? `Has utilizado tus ${MAX_CALCULOS_GRATIS} cálculos gratuitos.`
+      : '';
+  }
+  document.getElementById('paywall-overlay').classList.add('visible');
+}
+function cerrarPaywall(){
+  document.getElementById('paywall-overlay').classList.remove('visible');
+}
+function accionPremium(accion){
+  if(necesitaSuscripcion()){ mostrarPaywall(accion); return; }
+  if(accion==='pdf') exportarResultadoPDF();
+  if(accion==='tasacion') abrirTasacion();
+  if(accion==='factura') abrirFactura();
+}
 
 function actualizarBadgeContador(){
   const usados = getCalculosUsados();
@@ -857,52 +891,6 @@ function actualizarBadgeContador(){
     bar.style.borderColor = 'rgba(220,38,38,.2)';
     bar.style.color = 'var(--warn)';
   }
-}
-
-
-function getCalculosUsados(){
-  return parseInt(localStorage.getItem('calc-contador') || '0');
-}
-
-function incrementarContador(){
-  const n = getCalculosUsados() + 1;
-  localStorage.setItem('calc-contador', n.toString());
-  return n;
-}
-
-function calculos_restantes(){
-  return Math.max(0, MAX_CALCULOS_GRATIS - getCalculosUsados());
-}
-
-function necesitaSuscripcion(){
-  return !esSuscriptor() && getCalculosUsados() >= MAX_CALCULOS_GRATIS;
-}
-
-function mostrarPaywall(origen){
-  document.getElementById('pw-stripe-btn').href = STRIPE_URL;
-  // Actualizar el contador en el modal
-  const usados = getCalculosUsados();
-  const el = document.getElementById('pw-contador-msg');
-  if(el){
-    el.textContent = usados >= MAX_CALCULOS_GRATIS
-      ? `Has utilizado tus ${MAX_CALCULOS_GRATIS} cálculos gratuitos.`
-      : ``;
-  }
-  document.getElementById('paywall-overlay').classList.add('visible');
-}
-
-function cerrarPaywall(){
-  document.getElementById('paywall-overlay').classList.remove('visible');
-}
-
-function accionPremium(accion){
-  if(necesitaSuscripcion()){
-    mostrarPaywall(accion);
-    return;
-  }
-  if(accion==='pdf') exportarResultadoPDF();
-  if(accion==='tasacion') abrirTasacion();
-  if(accion==='factura') abrirFactura();
 }
 
 // Cerrar paywall al hacer clic fuera del modal
@@ -1294,14 +1282,23 @@ function mostrarErrores(errores,avisos){
   for(const a of avisos){
     html+=`<div style="background:rgba(234,179,8,.08);border-left:3px solid #ca8a04;border-radius:6px;padding:12px 16px;margin-bottom:8px;font-size:12px;color:#92400e;line-height:1.6">⚠️ ${a}</div>`;
   }
-  let caja=document.getElementById('validacion-box');
-  if(!caja){
-    caja=document.createElement('div');
-    caja.id='validacion-box';
-    document.querySelector('.btn-calc').insertAdjacentElement('afterend',caja);
+  try{
+    let caja=document.getElementById('validacion-box');
+    if(!caja){
+      caja=document.createElement('div');
+      caja.id='validacion-box';
+      caja.style.marginTop='12px';
+      const btnCalc=document.querySelector('#form-main .btn-calc');
+      if(btnCalc) btnCalc.insertAdjacentElement('beforebegin',caja);
+      else document.getElementById('form-main')?.appendChild(caja);
+    }
+    if(caja){
+      caja.innerHTML=html;
+      if(html) caja.scrollIntoView({behavior:'smooth',block:'center'});
+    }
+  }catch(e){
+    if(errores.length>0) alert(errores.join('\n'));
   }
-  caja.innerHTML=html;
-  if(html)caja.scrollIntoView({behavior:'smooth',block:'center'});
   return errores.length===0;
 }
 
